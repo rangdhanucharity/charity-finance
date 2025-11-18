@@ -1,0 +1,3325 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#667eea">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <title>Rangdhanu Charity Fund Tracker</title>
+    <style>
+        /* Base Styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            font-size: 14px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+
+        /* Mobile Responsive Adjustments */
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+                font-size: 12px;
+            }
+            
+            .header {
+                padding: 20px 15px !important;
+            }
+            
+            .header h1 {
+                font-size: 1.8em !important;
+            }
+            
+            .admin-controls {
+                position: static !important;
+                margin-top: 15px;
+                justify-content: center;
+            }
+            
+            .tabs {
+                flex-direction: column;
+            }
+            
+            .tab {
+                padding: 12px !important;
+            }
+            
+            .tab-content {
+                padding: 15px !important;
+            }
+            
+            .summary-grid {
+                grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)) !important;
+                gap: 10px !important;
+            }
+            
+            .summary-card .value {
+                font-size: 1.5em !important;
+            }
+            
+            .table-container {
+                overflow-x: auto;
+            }
+            
+            table {
+                min-width: 600px;
+            }
+            
+            .export-options {
+                flex-direction: column;
+            }
+            
+            .member-list {
+                grid-template-columns: 1fr !important;
+            }
+            
+            .modal-content {
+                min-width: 90% !important;
+                max-width: 95% !important;
+                padding: 20px !important;
+            }
+            
+            .form-actions {
+                flex-direction: column;
+            }
+            
+            .legend {
+                flex-direction: column;
+                gap: 10px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .header h1 {
+                font-size: 1.5em !important;
+            }
+            
+            .summary-grid {
+                grid-template-columns: 1fr 1fr !important;
+            }
+            
+            .admin-btn {
+                padding: 6px 10px !important;
+                font-size: 0.8em !important;
+            }
+        }
+
+        /* Desktop Optimizations */
+        @media (min-width: 1200px) {
+            .container {
+                margin: 20px auto;
+            }
+            
+            .tab-content {
+                padding: 40px !important;
+            }
+        }
+
+        /* Existing Styles (with minor adjustments) */
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+            position: relative;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .admin-controls {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            gap: 10px;
+        }
+
+        .admin-btn {
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border: 1px solid rgba(255,255,255,0.3);
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.9em;
+            transition: all 0.3s;
+        }
+
+        .admin-btn:hover {
+            background: rgba(255,255,255,0.3);
+        }
+
+        .admin-btn.disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .admin-btn.disabled:hover {
+            background: rgba(255,255,255,0.2);
+            transform: none;
+        }
+
+        .tabs {
+            display: flex;
+            background: #f8f9fa;
+            border-bottom: 2px solid #dee2e6;
+        }
+
+        .tab {
+            flex: 1;
+            padding: 15px;
+            text-align: center;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+            border: none;
+            background: none;
+            font-size: 1em;
+        }
+
+        .tab:hover {
+            background: #e9ecef;
+        }
+
+        .tab.active {
+            background: white;
+            color: #667eea;
+            border-bottom: 3px solid #667eea;
+        }
+
+        .tab-content {
+            display: none;
+            padding: 30px;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .summary-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .summary-card h3 {
+            font-size: 0.9em;
+            opacity: 0.9;
+            margin-bottom: 10px;
+        }
+
+        .summary-card .value {
+            font-size: 2em;
+            font-weight: bold;
+        }
+
+        .table-container {
+            overflow-x: auto;
+            margin-bottom: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+        }
+
+        th {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        tr:hover {
+            background: #f8f9fa;
+        }
+
+        input[type="number"], input[type="text"], input[type="email"], input[type="password"] {
+            width: 100%;
+            padding: 8px;
+            border: 2px solid #dee2e6;
+            border-radius: 5px;
+            font-size: 0.95em;
+            transition: all 0.3s;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .cell-white { background: white; }
+        .cell-yellow { background: #fff3cd; }
+        .cell-red { background: #f8d7da; }
+        .cell-green { background: #d4edda; }
+
+        .chart-container {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+
+        canvas {
+            max-width: 100%;
+        }
+
+        .member-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .member-item {
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .member-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        .member-item.paid {
+            border-left-color: #28a745;
+            background: #d4edda;
+        }
+
+        .member-item.due {
+            border-left-color: #dc3545;
+            background: #f8d7da;
+        }
+
+        .add-member-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 8px;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s;
+            margin-bottom: 20px;
+        }
+
+        .add-member-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .add-member-btn.disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .add-member-btn.disabled:hover {
+            transform: none;
+            box-shadow: none;
+        }
+
+        .legend {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .legend-color {
+            width: 30px;
+            height: 20px;
+            border-radius: 4px;
+            border: 1px solid #dee2e6;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            min-width: 400px;
+            max-width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal h3 {
+            margin-bottom: 20px;
+            color: #333;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 10px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: #555;
+        }
+
+        .form-group input, .form-group select, .form-group textarea {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #dee2e6;
+            border-radius: 5px;
+            font-size: 1em;
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+            margin-top: 20px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+        }
+
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+
+        .btn:hover {
+            opacity: 0.9;
+            transform: translateY(-1px);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn:disabled:hover {
+            opacity: 0.5;
+            transform: none;
+        }
+
+        .delete-btn {
+            background: #dc3545;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 3px;
+            cursor: pointer;
+            margin-left: 10px;
+            font-size: 0.8em;
+        }
+
+        .delete-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .edit-btn {
+            background: #ffc107;
+            color: black;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 3px;
+            cursor: pointer;
+            margin-left: 5px;
+            font-size: 0.8em;
+        }
+
+        .edit-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .month-header {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .login-modal {
+            display: flex;
+        }
+
+        .export-options {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .status-badge {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.8em;
+            font-weight: bold;
+        }
+
+        .status-logged-in {
+            background: #28a745;
+            color: white;
+        }
+
+        .status-logged-out {
+            background: #dc3545;
+            color: white;
+        }
+
+        .year-section {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border-left: 4px solid #667eea;
+        }
+
+        .year-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .year-title {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #333;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .year-actions {
+            display: flex;
+            gap: 5px;
+        }
+
+        .toggle-btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .toggle-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .collapsible {
+            display: block;
+        }
+
+        .collapsible.collapsed {
+            display: none;
+        }
+
+        .admin-contacts {
+            background: #e9ecef;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+            font-size: 0.9em;
+        }
+
+        .admin-contact-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 5px 0;
+            border-bottom: 1px solid #dee2e6;
+        }
+
+        .taka-symbol {
+            font-family: Arial, sans-serif;
+            font-weight: bold;
+        }
+
+        .clickable-header {
+            cursor: pointer;
+            transition: all 0.3s;
+            padding: 10px;
+            border-radius: 5px;
+        }
+
+        .clickable-header:hover {
+            background: rgba(102, 126, 234, 0.1);
+        }
+
+        .manage-years-btn {
+            background: #17a2b8;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.9em;
+            margin-left: 10px;
+        }
+
+        .manage-years-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .loading-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.7);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.2em;
+        }
+
+        .loading-spinner {
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid #667eea;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin-bottom: 15px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .sync-status {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            padding: 10px 15px;
+            border-radius: 5px;
+            font-size: 0.9em;
+            z-index: 100;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+        }
+
+        .sync-success {
+            background: #28a745;
+            color: white;
+        }
+
+        .sync-error {
+            background: #dc3545;
+            color: white;
+        }
+
+        .sync-pending {
+            background: #ffc107;
+            color: black;
+        }
+
+        .finance-summary {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .finance-card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            border-left: 4px solid #667eea;
+        }
+
+        .finance-card.income {
+            border-left-color: #28a745;
+        }
+
+        .finance-card.expense {
+            border-left-color: #dc3545;
+        }
+
+        .finance-card.balance {
+            border-left-color: #17a2b8;
+        }
+
+        .log-entry {
+            padding: 10px;
+            border-bottom: 1px solid #e9ecef;
+            font-size: 0.9em;
+        }
+
+        .log-entry:last-child {
+            border-bottom: none;
+        }
+
+        .log-timestamp {
+            color: #6c757d;
+            font-size: 0.8em;
+        }
+
+        .log-admin {
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .log-action {
+            font-weight: bold;
+        }
+
+        .log-details {
+            margin-top: 5px;
+            padding-left: 15px;
+            color: #495057;
+        }
+    </style>
+</head>
+<body>
+    <div class="loading-overlay" id="loadingOverlay">
+        <div style="text-align: center;">
+            <div class="loading-spinner"></div>
+            <div id="loadingText">Loading...</div>
+        </div>
+    </div>
+
+    <div class="sync-status" id="syncStatus" style="display: none;"></div>
+
+    <div class="container">
+        <div class="header">
+            <h1>Rangdhanu Charity Fund</h1>
+            <p id="dateRange">Loading...</p>
+            <div class="admin-controls">
+                <span id="loginStatus" class="status-badge status-logged-out">Logged Out</span>
+                <button class="admin-btn" onclick="showLoginModal()" id="loginBtn">🔐 Admin Login</button>
+                <button class="admin-btn" onclick="showExportModal()">📤 Export Data</button>
+                <button class="admin-btn" id="manageBtn" onclick="showManageModal()" disabled>⚙️ Manage</button>
+            </div>
+        </div>
+
+        <div class="tabs">
+            <button class="tab active" onclick="switchTab('collection')">💵 Collection Sheet</button>
+            <button class="tab" onclick="switchTab('dashboard')">📊 Dashboard</button>
+            <button class="tab" onclick="switchTab('reports')">📈 Reports</button>
+            <button class="tab" onclick="switchTab('finance')">💰 Finance</button>
+            <button class="tab" onclick="switchTab('logs')">📋 Activity Logs</button>
+        </div>
+
+        <!-- Collection Tab (Now First) -->
+        <div id="collection" class="tab-content active">
+            <div class="export-options">
+                <button class="add-member-btn" id="addMemberBtn" onclick="showAddMemberModal()" disabled>+ Add New Member</button>
+                <button class="add-member-btn" id="addYearBtn" onclick="showAddYearModal()" disabled>+ Add New Year</button>
+                <button class="add-member-btn" id="manageMembersBtn" onclick="showManageMembersModal()" disabled>👥 Manage Members</button>
+                <button class="add-member-btn" id="manageYearsBtn" onclick="showManageYearsModal()" disabled>📅 Manage Years</button>
+            </div>
+            
+            <div class="legend">
+                <div class="legend-item">
+                    <div class="legend-color cell-white"></div>
+                    <span>Future Month</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color cell-yellow"></div>
+                    <span>Current Month (Before 10th)</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color cell-red"></div>
+                    <span>Overdue (After 10th)</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color cell-green"></div>
+                    <span>Paid</span>
+                </div>
+            </div>
+
+            <div id="yearsContainer">
+                <!-- Years will be dynamically added here -->
+            </div>
+
+            <h3 style="margin: 30px 0 15px 0;">One-Time Public Donations</h3>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Donor Name</th>
+                            <th>Amount (৳)</th>
+                            <th>Note</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="donationsBody"></tbody>
+                </table>
+            </div>
+            <button class="add-member-btn" id="addDonationBtn" onclick="showAddDonationModal()" disabled>+ Add Donation</button>
+            <div style="margin-top: 15px; font-weight: bold;">
+                Total Public Donations: <span class="taka-symbol">৳</span><span id="totalDonations">0</span>
+            </div>
+        </div>
+
+        <!-- Dashboard Tab (Now Second) -->
+        <div id="dashboard" class="tab-content">
+            <div class="summary-grid">
+                <div class="summary-card">
+                    <h3>Total Collected</h3>
+                    <div class="value" id="totalCollected">৳0</div>
+                </div>
+                <div class="summary-card">
+                    <h3>Current Month Collection</h3>
+                    <div class="value" id="currentMonthCollection">৳0</div>
+                </div>
+                <div class="summary-card">
+                    <h3>Paid Members</h3>
+                    <div class="value" id="paidCount">0</div>
+                </div>
+                <div class="summary-card">
+                    <h3>Due Members</h3>
+                    <div class="value" id="dueCount">0</div>
+                </div>
+            </div>
+
+            <div class="chart-container">
+                <h3 style="margin-bottom: 15px;">Monthly Collection Trend</h3>
+                <canvas id="monthlyChart"></canvas>
+            </div>
+
+            <div class="chart-container">
+                <h3 style="margin-bottom: 15px;">Top Contributors</h3>
+                <canvas id="contributorsChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Reports Tab -->
+        <div id="reports" class="tab-content">
+            <div class="summary-grid">
+                <div class="summary-card clickable-header" onclick="toggleMemberList('paid')">
+                    <h3>✅ Paid Members (Current Month)</h3>
+                    <div class="value" id="paidCountReport">0</div>
+                    <small>Click to view/hide list</small>
+                </div>
+                <div class="summary-card clickable-header" onclick="toggleMemberList('due')">
+                    <h3>❌ Due Members (Current Month)</h3>
+                    <div class="value" id="dueCountReport">0</div>
+                    <small>Click to view/hide list</small>
+                </div>
+            </div>
+
+            <div id="paidListSection">
+                <h3 style="margin: 20px 0 15px 0;">Paid Members List</h3>
+                <div class="member-list" id="paidList"></div>
+            </div>
+
+            <div id="dueListSection">
+                <h3 style="margin: 20px 0 15px 0;">Due Members List</h3>
+                <div class="member-list" id="dueList"></div>
+            </div>
+
+            <h3 style="margin: 30px 0 20px 0;">Member Contribution Summary</h3>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Member Name</th>
+                            <th>Total Contribution</th>
+                            <th>Months Paid</th>
+                            <th>Months Due</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="contributionSummary"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Finance Tab (New) -->
+        <div id="finance" class="tab-content">
+            <div class="finance-summary">
+                <div class="finance-card income">
+                    <h3>Total collection</h3>
+                    <div class="value" id="totalIncome">৳0</div>
+                </div>
+                <div class="finance-card expense">
+                    <h3>Total Expenditure</h3>
+                    <div class="value" id="totalExpenditure">৳0</div>
+                </div>
+                <div class="finance-card balance">
+                    <h3>Current Balance</h3>
+                    <div class="value" id="currentBalance">৳0</div>
+                </div>
+            </div>
+
+            <div class="chart-container">
+                <h3 style="margin-bottom: 15px;">Collection vs Expenditure</h3>
+                <canvas id="financeChart"></canvas>
+            </div>
+
+            <div class="export-options">
+                <button class="add-member-btn" id="addExpenseBtn" onclick="showAddExpenseModal()" disabled>+ Add Expense</button>
+            </div>
+
+            <h3 style="margin: 30px 0 15px 0;">Expenditure Records</h3>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Amount (৳)</th>
+                            <th>Category</th>
+                            <th>Description</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="expensesBody"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Activity Logs Tab (New) -->
+        <div id="logs" class="tab-content">
+            <h3 style="margin-bottom: 20px;">Admin Activity Logs</h3>
+            <div class="table-container">
+                <div id="activityLogs">
+                    <!-- Activity logs will be dynamically added here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Admin Login Modal -->
+    <div id="loginModal" class="modal">
+        <div class="modal-content">
+            <h3>🔐 Admin Login - Rangdhanu Charity Fund</h3>
+            <div class="form-group">
+                <label for="adminName">Admin Name:</label>
+                <input type="text" id="adminName" placeholder="Enter your name">
+            </div>
+            <div class="form-group">
+                <label for="adminPassword">Password:</label>
+                <input type="password" id="adminPassword" placeholder="Enter admin password">
+            </div>
+            <div class="form-actions">
+                <button class="btn btn-secondary" onclick="hideLoginModal()">Cancel</button>
+                <button class="btn btn-primary" onclick="login()">Login</button>
+                <button class="btn btn-success" onclick="showForgotPasswordModal()">Forgot Password?</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Forgot Password Modal -->
+    <div id="forgotPasswordModal" class="modal">
+        <div class="modal-content">
+            <h3>🔑 Password Recovery</h3>
+            <div class="form-group">
+                <label>Admin Email:</label>
+                <input type="email" id="recoveryEmail" placeholder="Enter your admin email">
+            </div>
+            <div class="form-group">
+                <label>Verification Code:</label>
+                <input type="text" id="verificationCode" placeholder="Enter verification code">
+            </div>
+            <div class="form-group">
+                <label>New Password:</label>
+                <input type="password" id="newPassword" placeholder="Enter new password">
+            </div>
+            <div class="form-actions">
+                <button class="btn btn-secondary" onclick="hideForgotPasswordModal()">Cancel</button>
+                <button class="btn btn-primary" onclick="requestVerificationCode()">Get Code</button>
+                <button class="btn btn-success" onclick="resetPassword()">Reset Password</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Expense Modal -->
+    <div id="addExpenseModal" class="modal">
+        <div class="modal-content">
+            <h3>➕ Add New Expense</h3>
+            <div class="form-group">
+                <label for="expenseDate">Date:</label>
+                <input type="date" id="expenseDate" value="">
+            </div>
+            <div class="form-group">
+                <label for="expenseAmount">Amount (৳):</label>
+                <input type="number" id="expenseAmount" placeholder="Enter amount">
+            </div>
+            <div class="form-group">
+                <label for="expenseCategory">Category:</label>
+                <select id="expenseCategory">
+                    <option value="Operational">Operational</option>
+                    <option value="Event">Event</option>
+                    <option value="Administrative">Administrative</option>
+                    <option value="Charity">Charity</option>
+                    <option value="Other">Other</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="expenseDescription">Description:</label>
+                <textarea id="expenseDescription" placeholder="Enter expense description"></textarea>
+            </div>
+            <div class="form-actions">
+                <button class="btn btn-secondary" onclick="hideAddExpenseModal()">Cancel</button>
+                <button class="btn btn-primary" onclick="confirmAddExpense()">Add Expense</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Export Modal -->
+    <div id="exportModal" class="modal">
+        <div class="modal-content">
+            <h3>📤 Export Data - Rangdhanu Charity Fund</h3>
+            <div class="form-group">
+                <label>Export Format:</label>
+                <select id="exportFormat">
+                    <option value="excel">Excel File (.xlsx)</option>
+                    <option value="pdf">PDF Document</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Data to Export:</label>
+                <select id="exportData">
+                    <option value="all">Full Comprehensive Report (All Data)</option>
+                    <option value="financial">Financial Summary (Collection/Expense)</option>
+                    <option value="members">Detailed Member Payment Sheet</option>
+                    <option value="donations">Public Donations Only</option>
+                    <option value="expenses">Expenditure Records Only</option>
+                    <option value="logs">Activity Logs</option>
+                </select>
+            </div>
+            <div class="form-group" id="yearSelectionGroup" style="display: none;">
+                <label>Select Year (for Member Sheet):</label>
+                <select id="exportYearSelect"></select>
+            </div>
+            <div class="form-actions">
+                <button class="btn btn-secondary" onclick="hideExportModal()">Cancel</button>
+                <button class="btn btn-primary" onclick="exportData()">Export</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Manage Modal -->
+    <div id="manageModal" class="modal">
+        <div class="modal-content">
+            <h3>⚙️ System Management</h3>
+            <div class="form-group">
+                <button class="btn btn-primary" onclick="showBackupModal()" style="width: 100%; margin-bottom: 10px;">💾 Backup Data</button>
+                <button class="btn btn-secondary" onclick="showRestoreModal()" style="width: 100%; margin-bottom: 10px;">🔄 Restore Data</button>
+                <button class="btn btn-success" onclick="showAdminContactsModal()" style="width: 100%; margin-bottom: 10px;">📞 Manage Admin Contacts</button>
+                <button class="btn btn-danger" onclick="showPasswordPromptModal('reset')" style="width: 100%; margin-bottom: 10px;">🗑️ Reset All Data</button>
+                <button class="btn btn-secondary" onclick="logout()" style="width: 100%;">🚪 Logout</button>
+            </div>
+            <div class="form-actions">
+                <button class="btn btn-secondary" onclick="hideManageModal()">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Member Modal -->
+    <div id="addMemberModal" class="modal">
+        <div class="modal-content">
+            <h3>➕ Add New Member</h3>
+            <div class="form-group">
+                <label for="newMemberName">Member Name:</label>
+                <input type="text" id="newMemberName" placeholder="Enter full name">
+            </div>
+            <div class="form-group">
+                <label for="newMemberPhone">Phone Number:</label>
+                <input type="text" id="newMemberPhone" placeholder="Optional">
+            </div>
+            <div class="form-group">
+                <label for="newMemberEmail">Email Address:</label>
+                <input type="email" id="newMemberEmail" placeholder="Optional">
+            </div>
+            <div class="form-actions">
+                <button class="btn btn-secondary" onclick="hideAddMemberModal()">Cancel</button>
+                <button class="btn btn-primary" onclick="confirmAddMember()">Add Member</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Donation Modal (Replaces native prompt) -->
+    <div id="donationModal" class="modal">
+        <div class="modal-content">
+            <h3>+ Record New Public Donation</h3>
+            <div class="form-group">
+                <label for="donationDate">Date:</label>
+                <input type="date" id="donationDate">
+            </div>
+            <div class="form-group">
+                <label for="donorName">Donor Name:</label>
+                <input type="text" id="donorName" placeholder="Enter donor name">
+            </div>
+            <div class="form-group">
+                <label for="donationAmount">Amount (৳):</label>
+                <input type="number" id="donationAmount" placeholder="Enter amount">
+            </div>
+            <div class="form-group">
+                <label for="donationNote">Note (optional):</label>
+                <textarea id="donationNote" placeholder="e.g. For food drive, Anonymous"></textarea>
+            </div>
+            <div class="form-actions">
+                <button class="btn btn-secondary" onclick="hideDonationModal()">Cancel</button>
+                <button class="btn btn-primary" onclick="confirmAddDonation()">Record Donation</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Manage Members Modal -->
+    <div id="manageMembersModal" class="modal">
+        <div class="modal-content">
+            <h3>👥 Manage Members</h3>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Member Name</th>
+                            <th>Phone</th>
+                            <th>Email</th>
+                            <th>Join Date</th>
+                            <th>Total Paid</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="manageMembersBody"></tbody>
+                </table>
+            </div>
+            <div class="form-actions">
+                <button class="btn btn-secondary" onclick="hideManageMembersModal()">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Year Modal -->
+    <div id="addYearModal" class="modal">
+        <div class="modal-content">
+            <h3>➕ Add New Year</h3>
+            <div class="form-group">
+                <label for="newYear">Select Year:</label>
+                <input type="number" id="newYear" min="2024" max="2030" value="2027">
+            </div>
+            <div class="form-actions">
+                <button class="btn btn-secondary" onclick="hideAddYearModal()">Cancel</button>
+                <button class="btn btn-primary" onclick="confirmAddYear()">Add Year</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Manage Years Modal -->
+    <div id="manageYearsModal" class="modal">
+        <div class="modal-content">
+            <h3>📅 Manage Years</h3>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Year</th>
+                            <th>Months</th>
+                            <th>Total Collection</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="manageYearsBody"></tbody>
+                </table>
+            </div>
+            <div class="form-actions">
+                <button class="btn btn-secondary" onclick="hideManageYearsModal()">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Admin Contacts Modal -->
+    <div id="adminContactsModal" class="modal">
+        <div class="modal-content">
+            <h3>📞 Admin Contacts Management</h3>
+            <div id="adminContactsContainer">
+                <!-- Admin contacts will be dynamically added here -->
+            </div>
+            <button class="add-member-btn" onclick="addAdminContact()" style="margin-top: 15px;">+ Add New Contact</button>
+            <div class="form-actions">
+                <button class="btn btn-secondary" onclick="hideAdminContactsModal()">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Custom Dialog Modal (Replaces alert and confirm) -->
+    <div id="customDialogModal" class="modal">
+        <div class="modal-content">
+            <h3 id="dialogTitle">Dialog</h3>
+            <p id="dialogMessage" style="margin-bottom: 20px;"></p>
+            <div class="form-actions">
+                <button class="btn btn-secondary" id="dialogCancelBtn" style="display: none;">Cancel</button>
+                <button class="btn btn-primary" id="dialogConfirmBtn">OK</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Password Prompt Modal (For secured actions like Reset) -->
+    <div id="passwordPromptModal" class="modal">
+        <div class="modal-content">
+            <h3 id="passwordPromptTitle">Security Check</h3>
+            <p id="passwordPromptMessage" style="margin-bottom: 15px;"></p>
+            <div class="form-group">
+                <label for="securityPasswordInput">Enter Admin Password:</label>
+                <input type="password" id="securityPasswordInput">
+            </div>
+            <div class="form-actions">
+                <button class="btn btn-secondary" onclick="hidePasswordPromptModal()">Cancel</button>
+                <button class="btn btn-danger" onclick="confirmPasswordPrompt()">Confirm Action</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+    <script>
+        // Enhanced data structure with Google Sheets integration
+        let appData = {
+            organization: "Rangdhanu Charity Fund",
+            appVersion: "3.0",
+            years: {
+                "2025": {
+                    months: ['Nov 2025', 'Dec 2025'],
+                    monthDates: [
+                        new Date(2025, 10, 1), new Date(2025, 11, 1)
+                    ]
+                },
+                "2026": {
+                    months: ['Jan 2026', 'Feb 2026', 'Mar 2026', 'Apr 2026', 'May 2026', 'Jun 2026', 
+                            'Jul 2026', 'Aug 2026', 'Sep 2026', 'Oct 2026', 'Nov 2026', 'Dec 2026'],
+                    monthDates: [
+                        new Date(2026, 0, 1), new Date(2026, 1, 1), new Date(2026, 2, 1),
+                        new Date(2026, 3, 1), new Date(2026, 4, 1), new Date(2026, 5, 1),
+                        new Date(2026, 6, 1), new Date(2026, 7, 1), new Date(2026, 8, 1),
+                        new Date(2026, 9, 1), new Date(2026, 10, 1), new Date(2026, 11, 1)
+                    ]
+                }
+            },
+            members: [
+                { id: 1, name: 'Ahmed Rahman', phone: '+8801XXX', email: 'ahmed@example.com', joinDate: '2025-01-15' },
+                { id: 2, name: 'Fatima Khan', phone: '+8801XXX', email: 'fatima@example.com', joinDate: '2025-01-15' },
+                { id: 3, name: 'Mohammad Ali', phone: '+8801XXX', email: 'mohammad@example.com', joinDate: '2025-01-15' },
+                { id: 4, name: 'Ayesha Begum', phone: '+8801XXX', email: 'ayesha@example.com', joinDate: '2025-01-15' },
+                { id: 5, name: 'Ibrahim Hassan', phone: '+8801XXX', email: 'ibrahim@example.com', joinDate: '2025-01-15' }
+            ],
+            payments: {},
+            donations: [],
+            expenses: [],
+            activityLogs: [],
+            settings: {
+                adminPassword: 'admin123',
+                currentAdmin: null,
+                isAuthenticated: false,
+                adminContacts: [
+                    { name: 'Admin 1', phone: '+8801712345678', email: 'admin1@rangdhanu.org' },
+                    { name: 'Admin 2', phone: '+8801812345678', email: 'admin2@rangdhanu.org' }
+                ]
+            }
+        };
+
+        // Google Sheets Integration (Placeholder for real backend integration)
+        const GOOGLE_SHEETS_CONFIG = {
+            scriptUrl: 'https://script.google.com/macros/s/AKfycbxMPxlqWdJAS6XAejaste5H0iyMd1IU32kQjY_c6W8sE39K2Xhacb5b3fH3I6UiUVir/exec', // Replace with your Google Apps Script URL
+            sheetId: '1hHa98mqdg65U10NHPjTIey59IkV3Ti2hwZv68iVWzOQ' // Replace with your Google Sheet ID
+        };
+
+        let monthlyChart, contributorsChart, financeChart;
+        let verificationCodes = {};
+        let isOnline = navigator.onLine;
+        let syncPending = false;
+        let pendingAction = null; // Used ONLY for password prompt to track action (currently 'reset')
+
+        // ========== CUSTOM DIALOG MANAGEMENT (Replaces alert/confirm/prompt) ==========
+
+        function hideCustomDialogModal() {
+            document.getElementById('customDialogModal').style.display = 'none';
+        }
+
+        function showCustomAlert(message, title = 'Notification', type = 'primary') {
+            const modal = document.getElementById('customDialogModal');
+            document.getElementById('dialogTitle').textContent = title;
+            document.getElementById('dialogMessage').textContent = message;
+            
+            const confirmBtn = document.getElementById('dialogConfirmBtn');
+            const cancelBtn = document.getElementById('dialogCancelBtn');
+
+            confirmBtn.textContent = 'OK';
+            confirmBtn.className = `btn btn-${type}`;
+            confirmBtn.onclick = hideCustomDialogModal;
+
+            cancelBtn.style.display = 'none';
+            modal.style.display = 'flex';
+        }
+
+        function showCustomConfirm(message, title = 'Confirmation', type = 'danger', callback) {
+            const modal = document.getElementById('customDialogModal');
+            document.getElementById('dialogTitle').textContent = title;
+            document.getElementById('dialogMessage').textContent = message;
+            
+            const confirmBtn = document.getElementById('dialogConfirmBtn');
+            const cancelBtn = document.getElementById('dialogCancelBtn');
+
+            confirmBtn.textContent = 'Confirm';
+            confirmBtn.className = `btn btn-${type}`;
+            confirmBtn.onclick = () => {
+                hideCustomDialogModal();
+                callback(true);
+            };
+
+            cancelBtn.textContent = 'Cancel';
+            cancelBtn.className = 'btn btn-secondary';
+            cancelBtn.onclick = () => {
+                hideCustomDialogModal();
+                callback(false);
+            };
+            cancelBtn.style.display = 'inline-flex';
+            modal.style.display = 'flex';
+        }
+
+        // Custom modal functions for password prompt
+        function showPasswordPromptModal(action, message = "Please enter your admin password to proceed with this critical action.") {
+            if (!requireAuth()) return;
+            pendingAction = action; // Set action ONLY if password is required
+            document.getElementById('passwordPromptTitle').textContent = action.toUpperCase() + " Security Check";
+            document.getElementById('passwordPromptMessage').textContent = message;
+            document.getElementById('securityPasswordInput').value = '';
+            document.getElementById('passwordPromptModal').style.display = 'flex';
+        }
+
+        function hidePasswordPromptModal() {
+            document.getElementById('passwordPromptModal').style.display = 'none';
+            pendingAction = null;
+        }
+
+        async function confirmPasswordPrompt() {
+            const passwordInput = document.getElementById('securityPasswordInput').value;
+            if (passwordInput !== appData.settings.adminPassword) {
+                showCustomAlert('❌ Invalid password!', 'Error', 'danger');
+                document.getElementById('securityPasswordInput').value = ''; // Clear input on failure
+                return;
+            }
+
+            hidePasswordPromptModal();
+            
+            // Only 'reset' requires password check based on user request
+            if (pendingAction === 'reset') {
+                resetAllDataConfirmed();
+            } else {
+                 console.error("Critical error: Password confirmed but no matching high-security pending action found.");
+                 // In case of a logic error, show alert but do nothing destructive.
+                 showCustomAlert('System Error: Action canceled due to unexpected state.', 'Error', 'danger');
+            }
+        }
+
+
+        // ========== GOOGLE SHEETS INTEGRATION ==========
+
+        async function saveToGoogleSheets() {
+            if (!isOnline) {
+                console.log('Offline - data saved locally only');
+                localStorage.setItem('rangdhanuCharityData', JSON.stringify(appData));
+                return false;
+            }
+
+            try {
+                showLoading('Saving to cloud...');
+                
+                // Placeholder fetch call for Google Apps Script
+                const response = await fetch(GOOGLE_SHEETS_CONFIG.scriptUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action: 'saveData', data: appData })
+                });
+
+                if (response.ok) {
+                    showSyncStatus('Data saved to cloud successfully!', 'success');
+                    localStorage.setItem('rangdhanuCharityData', JSON.stringify(appData));
+                    hideLoading();
+                    return true;
+                } else {
+                    throw new Error('Failed to save to Google Sheets');
+                }
+            } catch (error) {
+                console.error('Error saving to Google Sheets:', error);
+                showSyncStatus('Failed to save to cloud. Data saved locally.', 'error');
+                localStorage.setItem('rangdhanuCharityData', JSON.stringify(appData));
+                hideLoading();
+                return false;
+            }
+        }
+
+        async function loadFromGoogleSheets() {
+            if (!isOnline) {
+                console.log('Offline - loading from local storage');
+                const localData = localStorage.getItem('rangdhanuCharityData');
+                if (localData) {
+                    return JSON.parse(localData);
+                }
+                return null;
+            }
+
+            try {
+                showLoading('Loading from cloud...');
+                
+                // Placeholder fetch call for Google Apps Script
+                const response = await fetch(`${GOOGLE_SHEETS_CONFIG.scriptUrl}?action=getData`);
+                
+                if (response.ok) {
+                    const cloudData = await response.json();
+                    hideLoading();
+                    return cloudData;
+                } else {
+                    throw new Error('Failed to load from Google Sheets');
+                }
+            } catch (error) {
+                console.error('Error loading from Google Sheets:', error);
+                const localData = localStorage.getItem('rangdhanuCharityData');
+                hideLoading();
+                if (localData) {
+                    showSyncStatus('Using local data (cloud unavailable)', 'error');
+                    return JSON.parse(localData);
+                }
+                return null;
+            }
+        }
+
+        // ========== ACTIVITY LOGGING ==========
+
+        function logActivity(action, details) {
+            if (!appData.settings.isAuthenticated || !appData.settings.currentAdmin) return;
+            
+            const logEntry = {
+                timestamp: new Date().toISOString(),
+                admin: appData.settings.currentAdmin,
+                action: action,
+                details: details
+            };
+            
+            appData.activityLogs.unshift(logEntry);
+            
+            // Keep only last 1000 logs to prevent excessive storage
+            if (appData.activityLogs.length > 1000) {
+                appData.activityLogs = appData.activityLogs.slice(0, 1000);
+            }
+            
+            saveData(); // Use saveData to ensure logs are synced if online
+            
+            if (document.getElementById('logs').classList.contains('active')) {
+                renderActivityLogs();
+            }
+        }
+
+        function renderActivityLogs() {
+            const logsContainer = document.getElementById('activityLogs');
+            logsContainer.innerHTML = '';
+            
+            if (appData.activityLogs.length === 0) {
+                logsContainer.innerHTML = '<div class="log-entry">No activity logs yet.</div>';
+                return;
+            }
+            
+            appData.activityLogs.forEach(log => {
+                const logEntry = document.createElement('div');
+                logEntry.className = 'log-entry';
+                
+                const timestamp = new Date(log.timestamp).toLocaleString();
+                
+                logEntry.innerHTML = `
+                    <div>
+                        <span class="log-timestamp">${timestamp}</span> - 
+                        <span class="log-admin">${log.admin}</span> 
+                        <span class="log-action">${log.action}</span>
+                    </div>
+                    <div class="log-details">${log.details}</div>
+                `;
+                
+                logsContainer.appendChild(logEntry);
+            });
+        }
+
+        // ========== EMAIL NOTIFICATIONS (Placeholders) ==========
+
+        async function sendPaymentNotification(member, amount, year, month) {
+            // Placeholder: Not required for this request, left as is.
+            if (!member.email || !isOnline) return;
+            try {
+                await fetch(GOOGLE_SHEETS_CONFIG.scriptUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action: 'sendPaymentNotification', member, amount, year, month })
+                });
+            } catch (error) {
+                console.error('Error sending payment notification:', error);
+            }
+        }
+
+        async function sendPasswordRecoveryEmail(email, code) {
+            if (!isOnline) {
+                showCustomAlert('Cannot send recovery email while offline. Please check your internet connection.', 'Error', 'danger');
+                return false;
+            }
+
+            try {
+                showLoading('Sending recovery email...');
+                
+                // Placeholder fetch call
+                const response = await fetch(GOOGLE_SHEETS_CONFIG.scriptUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action: 'sendRecoveryEmail', email, code })
+                });
+
+                hideLoading();
+                
+                if (response.ok) {
+                    return true;
+                } else {
+                    throw new Error('Failed to send recovery email');
+                }
+            } catch (error) {
+                console.error('Error sending recovery email:', error);
+                // For demo purposes, provide code directly
+                showCustomAlert(`In a real implementation, a recovery code would be sent to ${email}. For now, use this code: ${code}`, 'Simulation Success', 'success');
+                return true;
+            }
+        }
+
+        // ========== DATA MIGRATION SYSTEM ==========
+
+        async function migrateData() {
+            const currentVersion = "3.0";
+            const cloudData = await loadFromGoogleSheets();
+            
+            if (cloudData) {
+                appData = { ...appData, ...cloudData };
+                
+                Object.keys(appData.years).forEach(year => {
+                    appData.years[year].monthDates = appData.years[year].monthDates.map(date => new Date(date));
+                });
+                
+                await saveToGoogleSheets();
+                return;
+            }
+
+            const savedData = localStorage.getItem('rangdhanuCharityData');
+            
+            if (!savedData) {
+                await saveToGoogleSheets();
+                return;
+            }
+
+            try {
+                const parsedData = JSON.parse(savedData);
+                appData = { ...appData, ...parsedData };
+                
+                Object.keys(appData.years).forEach(year => {
+                    appData.years[year].monthDates = appData.years[year].monthDates.map(date => new Date(date));
+                });
+                
+                await saveToGoogleSheets();
+            } catch (error) {
+                console.error('Data migration failed:', error);
+                await saveToGoogleSheets();
+            }
+        }
+
+        // ========== CORE APPLICATION FUNCTIONS ==========
+
+        async function initializeApp() {
+            showLoading('Initializing application...');
+            await migrateData();
+            initializePayments();
+            renderYears();
+            renderDonations();
+            renderExpenses();
+            updateDashboard();
+            updateReports();
+            updateFinance();
+            updateDateRange();
+            updateLoginStatus();
+            updateAdminControls();
+            
+            window.addEventListener('online', handleOnline);
+            window.addEventListener('offline', handleOffline);
+            
+            hideLoading();
+        }
+
+        async function saveData() {
+            appData.lastSaved = new Date().toISOString();
+            await saveToGoogleSheets();
+        }
+
+        function handleOnline() {
+            isOnline = true;
+            showSyncStatus('Back online - syncing data...', 'pending');
+            
+            if (syncPending) {
+                saveData();
+                syncPending = false;
+            }
+        }
+
+        function handleOffline() {
+            isOnline = false;
+            showSyncStatus('You are offline - changes saved locally', 'error');
+        }
+
+        function showSyncStatus(message, type) {
+            const statusElement = document.getElementById('syncStatus');
+            statusElement.textContent = message;
+            statusElement.className = `sync-status sync-${type}`;
+            statusElement.style.display = 'block';
+            
+            setTimeout(() => {
+                statusElement.style.display = 'none';
+            }, 5000);
+        }
+
+        function showLoading(message) {
+            document.getElementById('loadingOverlay').style.display = 'flex';
+            document.getElementById('loadingText').textContent = message;
+        }
+
+        function hideLoading() {
+            document.getElementById('loadingOverlay').style.display = 'none';
+        }
+
+        function initializePayments() {
+            appData.members.forEach(member => {
+                if (!appData.payments[member.id]) {
+                    appData.payments[member.id] = {};
+                    Object.keys(appData.years).forEach(year => {
+                        appData.payments[member.id][year] = Array(appData.years[year].months.length).fill(null);
+                    });
+                }
+            });
+        }
+
+        // ========== ADMIN CONTROLS MANAGEMENT ==========
+
+        function updateAdminControls() {
+            const isAuthenticated = appData.settings.isAuthenticated;
+            
+            document.getElementById('manageBtn').disabled = !isAuthenticated;
+            document.getElementById('addMemberBtn').disabled = !isAuthenticated;
+            document.getElementById('addYearBtn').disabled = !isAuthenticated;
+            document.getElementById('manageMembersBtn').disabled = !isAuthenticated;
+            document.getElementById('manageYearsBtn').disabled = !isAuthenticated;
+            document.getElementById('addDonationBtn').disabled = !isAuthenticated;
+            document.getElementById('addExpenseBtn').disabled = !isAuthenticated;
+            
+            const adminButtons = document.querySelectorAll('.admin-btn, .add-member-btn');
+            adminButtons.forEach(btn => {
+                if (btn.disabled) {
+                    btn.classList.add('disabled');
+                } else {
+                    btn.classList.remove('disabled');
+                }
+            });
+        }
+
+        // ========== AUTHENTICATION FUNCTIONS ==========
+
+        function showLoginModal() {
+            document.getElementById('loginModal').style.display = 'flex';
+        }
+
+        function hideLoginModal() {
+            document.getElementById('loginModal').style.display = 'none';
+            document.getElementById('adminName').value = '';
+            document.getElementById('adminPassword').value = '';
+        }
+
+        function login() {
+            const adminName = document.getElementById('adminName').value.trim();
+            const password = document.getElementById('adminPassword').value;
+            
+            if (!adminName) {
+                showCustomAlert('❌ Please enter your name!', 'Login Error', 'warning');
+                return;
+            }
+            
+            if (password === appData.settings.adminPassword) {
+                appData.settings.isAuthenticated = true;
+                appData.settings.currentAdmin = adminName;
+                hideLoginModal();
+                updateLoginStatus();
+                updateAdminControls();
+                renderYears();
+                
+                logActivity('logged in', `Admin ${adminName} logged into the system`);
+                
+                showCustomAlert('✅ Admin access granted!', 'Success', 'success');
+            } else {
+                showCustomAlert('❌ Invalid password!', 'Login Error', 'danger');
+            }
+        }
+
+        function logout() {
+            const adminName = appData.settings.currentAdmin;
+            appData.settings.isAuthenticated = false;
+            appData.settings.currentAdmin = null;
+            updateLoginStatus();
+            updateAdminControls();
+            renderYears();
+            hideManageModal();
+            
+            if (adminName) {
+                logActivity('logged out', `Admin ${adminName} logged out of the system`);
+            }
+            
+            showCustomAlert('✅ Logged out successfully!', 'Success', 'success');
+        }
+
+        function updateLoginStatus() {
+            const statusElement = document.getElementById('loginStatus');
+            const loginBtn = document.getElementById('loginBtn');
+            
+            if (appData.settings.isAuthenticated) {
+                statusElement.textContent = `Logged in as ${appData.settings.currentAdmin}`;
+                statusElement.className = 'status-badge status-logged-in';
+                loginBtn.textContent = '🚪 Logout';
+                loginBtn.onclick = logout;
+            } else {
+                statusElement.textContent = 'Logged Out';
+                statusElement.className = 'status-badge status-logged-out';
+                loginBtn.textContent = '🔐 Admin Login';
+                loginBtn.onclick = showLoginModal;
+            }
+        }
+
+        function requireAuth() {
+            if (!appData.settings.isAuthenticated) {
+                showCustomAlert('🔐 Admin authentication required!', 'Authorization Required', 'danger');
+                showLoginModal();
+                return false;
+            }
+            return true;
+        }
+
+        // ========== TAB MANAGEMENT ==========
+
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            
+            // Note: event is passed implicitly by onclick in HTML
+            event.target.classList.add('active');
+            document.getElementById(tabName).classList.add('active');
+            
+            if (tabName === 'dashboard') updateDashboard();
+            if (tabName === 'reports') updateReports();
+            if (tabName === 'finance') updateFinance();
+            if (tabName === 'logs') renderActivityLogs();
+        }
+
+        // ========== YEAR MANAGEMENT ==========
+
+        function renderYears() {
+            const container = document.getElementById('yearsContainer');
+            container.innerHTML = '';
+            
+            Object.keys(appData.years).sort().forEach(year => {
+                const yearData = appData.years[year];
+                const yearSection = document.createElement('div');
+                yearSection.className = 'year-section';
+                yearSection.innerHTML = `
+                    <div class="year-header">
+                        <div class="year-title">
+                            ${year} - Rangdhanu Charity Fund
+                            ${appData.settings.isAuthenticated ? 
+                                `<button class="delete-btn" onclick="deleteYearConfirmation('${year}')">Delete Year</button>` : 
+                                ''}
+                        </div>
+                        <div class="year-actions">
+                            <button class="toggle-btn" onclick="toggleYear('${year}')">▼</button>
+                        </div>
+                    </div>
+                    <div id="year-${year}" class="collapsible">
+                        <div class="table-container">
+                            <table>
+                                <thead>
+                                    <tr id="header-${year}"></tr>
+                                </thead>
+                                <tbody id="body-${year}"></tbody>
+                                <tfoot>
+                                    <tr id="total-${year}" style="font-weight: bold; background: #f8f9fa;"></tr>
+                                </tfoot>
+                            </table>
+                        </div>
+                    </div>
+                `;
+                container.appendChild(yearSection);
+                renderYearTable(year);
+            });
+            
+            updateDateRange();
+        }
+
+        function renderYearTable(year) {
+            const headerRow = document.getElementById(`header-${year}`);
+            const tableBody = document.getElementById(`body-${year}`);
+            const totalRow = document.getElementById(`total-${year}`);
+            const yearData = appData.years[year];
+
+            headerRow.innerHTML = '<th>Member Name</th>';
+            yearData.months.forEach((month, index) => {
+                headerRow.innerHTML += `
+                    <th>
+                        <div class="month-header">
+                            ${month}
+                            ${appData.settings.isAuthenticated ? `<button class="delete-btn" onclick="deleteMonthConfirmation('${year}', ${index})">×</button>` : ''}
+                        </div>
+                    </th>`;
+            });
+            headerRow.innerHTML += '<th>Total</th>';
+
+            tableBody.innerHTML = '';
+            appData.members.forEach(member => {
+                const row = document.createElement('tr');
+                row.innerHTML = `<td><strong>${member.name}</strong></td>`;
+                
+                yearData.months.forEach((month, mIdx) => {
+                    const payment = appData.payments[member.id]?.[year]?.[mIdx];
+                    const cellClass = payment ? 'cell-green' : getCellClass(year, mIdx);
+                    row.innerHTML += `
+                        <td class="${cellClass}">
+                            <input type="number" value="${payment || ''}" 
+                                       onchange="updatePayment(${member.id}, '${year}', ${mIdx}, this.value)"
+                                       placeholder="0" ${!appData.settings.isAuthenticated ? 'disabled' : ''}>
+                        </td>`;
+                });
+
+                const total = (appData.payments[member.id]?.[year] || []).reduce((sum, val) => sum + (parseFloat(val) || 0), 0);
+                row.innerHTML += `<td><strong><span class="taka-symbol">৳</span>${total.toFixed(2)}</strong></td>`;
+                tableBody.appendChild(row);
+            });
+
+            totalRow.innerHTML = '<td>Monthly Total</td>';
+            yearData.months.forEach((month, mIdx) => {
+                const monthTotal = appData.members.reduce((sum, member) => 
+                    sum + (parseFloat(appData.payments[member.id]?.[year]?.[mIdx]) || 0), 0);
+                totalRow.innerHTML += `<td><span class="taka-symbol">৳</span>${monthTotal.toFixed(2)}</td>`;
+            });
+
+            const grandTotal = appData.members.reduce((sum, member) => 
+                sum + (appData.payments[member.id]?.[year] || []).reduce((s, v) => s + (parseFloat(v) || 0), 0), 0);
+            totalRow.innerHTML += `<td><span class="taka-symbol">৳</span>${grandTotal.toFixed(2)}</td>`;
+        }
+
+        function getCellClass(year, monthIndex) {
+            const today = new Date();
+            const monthDate = appData.years[year].monthDates[monthIndex];
+            const deadline = new Date(monthDate.getFullYear(), monthDate.getMonth(), 10);
+            
+            if (today < monthDate) return 'cell-white';
+            if (today >= monthDate && today <= deadline) return 'cell-yellow';
+            if (today > deadline) return 'cell-red';
+            return 'cell-white';
+        }
+
+        function showAddYearModal() {
+            if (!requireAuth()) return;
+            document.getElementById('addYearModal').style.display = 'flex';
+        }
+
+        function hideAddYearModal() {
+            document.getElementById('addYearModal').style.display = 'none';
+        }
+
+        async function confirmAddYear() {
+            const year = document.getElementById('newYear').value;
+            
+            if (year && !appData.years[year]) {
+                appData.years[year] = {
+                    months: [],
+                    monthDates: []
+                };
+                
+                for (let month = 0; month < 12; month++) {
+                    const date = new Date(year, month, 1);
+                    const monthName = date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+                    appData.years[year].months.push(monthName);
+                    appData.years[year].monthDates.push(date);
+                }
+                
+                appData.members.forEach(member => {
+                    if (!appData.payments[member.id]) {
+                        appData.payments[member.id] = {};
+                    }
+                    appData.payments[member.id][year] = Array(12).fill(null);
+                });
+                
+                renderYears();
+                await saveData();
+                
+                logActivity('added a new year', `Added year ${year} with 12 months`);
+                
+                hideAddYearModal();
+                showCustomAlert(`✅ Year ${year} added successfully with 12 months!`, 'Success', 'success');
+            } else {
+                showCustomAlert('❌ Year already exists or invalid year!', 'Error', 'danger');
+            }
+        }
+
+        function showManageYearsModal() {
+            if (!requireAuth()) return;
+            
+            const body = document.getElementById('manageYearsBody');
+            body.innerHTML = '';
+            
+            Object.keys(appData.years).sort().forEach(year => {
+                const yearData = appData.years[year];
+                const totalCollection = appData.members.reduce((sum, member) => 
+                    sum + (appData.payments[member.id]?.[year] || []).reduce((s, v) => s + (parseFloat(v) || 0), 0), 0);
+                
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td><strong>${year}</strong></td>
+                    <td>${yearData.months.length} months</td>
+                    <td><span class="taka-symbol">৳</span>${totalCollection.toFixed(2)}</td>
+                    <td>
+                        <button class="delete-btn" onclick="deleteYearConfirmation('${year}')">Delete Year</button>
+                    </td>
+                `;
+                body.appendChild(row);
+            });
+            
+            document.getElementById('manageYearsModal').style.display = 'flex';
+        }
+
+        function hideManageYearsModal() {
+            document.getElementById('manageYearsModal').style.display = 'none';
+        }
+
+        // Deletion Step 1: Confirmation
+        function deleteYearConfirmation(year) {
+            if (!requireAuth()) return;
+            
+            if (Object.keys(appData.years).length <= 1) {
+                showCustomAlert('❌ Cannot delete the only remaining year!', 'Error', 'danger');
+                return;
+            }
+
+            const yearCollection = appData.members.reduce((sum, member) => 
+                sum + (appData.payments[member.id]?.[year] || []).reduce((s, v) => s + (parseFloat(v) || 0), 0), 0);
+            
+            const message = yearCollection > 0
+                ? `⚠️ Year ${year} has collected ৳${yearCollection.toFixed(2)}. Are you sure you want to delete it? This action cannot be undone!`
+                : `Are you sure you want to delete year ${year}?`;
+
+            // No password check required for this minor deletion
+            showCustomConfirm(message, 'Confirm Deletion', 'danger', (confirmed) => {
+                if (confirmed) {
+                    deleteYearConfirmed(year, yearCollection); // Call confirmed function directly
+                }
+            });
+        }
+
+        // Deletion Step 2: Confirmed (called directly after simple confirmation)
+        async function deleteYearConfirmed(year, collection) {
+            
+            delete appData.years[year];
+            
+            appData.members.forEach(member => {
+                if (appData.payments[member.id]) {
+                    delete appData.payments[member.id][year];
+                }
+            });
+            
+            renderYears();
+            updateDashboard();
+            updateReports();
+            await saveData();
+            
+            logActivity('deleted a year', `Deleted year ${year} with total collection of ৳${collection.toFixed(2)}`);
+            
+            showCustomAlert(`✅ Year ${year} deleted successfully!`, 'Success', 'success');
+            
+            hideManageYearsModal();
+        }
+
+        function deleteMonthConfirmation(year, monthIndex) {
+            if (!requireAuth()) return;
+            const monthName = appData.years[year].months[monthIndex];
+            
+            // No password check required for this minor deletion
+            showCustomConfirm(`Are you sure you want to delete ${monthName}?`, 'Confirm Deletion', 'danger', (confirmed) => {
+                if (confirmed) {
+                    deleteMonthConfirmed(year, monthIndex, monthName);
+                }
+            });
+        }
+
+        async function deleteMonthConfirmed(year, monthIndex, monthName) {
+            appData.years[year].months.splice(monthIndex, 1);
+            appData.years[year].monthDates.splice(monthIndex, 1);
+            
+            appData.members.forEach(member => {
+                if (appData.payments[member.id]?.[year]) {
+                    appData.payments[member.id][year].splice(monthIndex, 1);
+                }
+            });
+            
+            renderYears();
+            await saveData();
+            
+            logActivity('deleted a month', `Deleted ${monthName} from year ${year}`);
+            showCustomAlert(`✅ Month ${monthName} deleted successfully!`, 'Success', 'success');
+        }
+
+
+        function toggleYear(year) {
+            const element = document.getElementById(`year-${year}`);
+            const button = element.previousElementSibling.querySelector('.toggle-btn');
+            
+            if (element.classList.contains('collapsed')) {
+                element.classList.remove('collapsed');
+                button.textContent = '▼';
+            } else {
+                element.classList.add('collapsed');
+                button.textContent = '▶';
+            }
+        }
+
+        function updateDateRange() {
+            const years = Object.keys(appData.years).sort();
+            if (years.length === 0) {
+                document.getElementById('dateRange').textContent = "No years available";
+                return;
+            }
+            
+            const firstYear = years[0];
+            const lastYear = years[years.length - 1];
+            const firstMonth = appData.years[firstYear].months[0];
+            const lastMonth = appData.years[lastYear].months[appData.years[lastYear].months.length - 1];
+            
+            document.getElementById('dateRange').textContent = `${firstMonth} - ${lastMonth}`;
+        }
+
+        // ========== MEMBER MANAGEMENT ==========
+
+        function showAddMemberModal() {
+            if (!requireAuth()) return;
+            document.getElementById('addMemberModal').style.display = 'flex';
+        }
+
+        function hideAddMemberModal() {
+            document.getElementById('addMemberModal').style.display = 'none';
+            document.getElementById('newMemberName').value = '';
+            document.getElementById('newMemberPhone').value = '';
+            document.getElementById('newMemberEmail').value = '';
+        }
+
+        async function confirmAddMember() {
+            const name = document.getElementById('newMemberName').value.trim();
+            const phone = document.getElementById('newMemberPhone').value.trim();
+            const email = document.getElementById('newMemberEmail').value.trim();
+            
+            if (name) {
+                const newId = Math.max(...appData.members.map(m => m.id), 0) + 1;
+                const newMember = {
+                    id: newId,
+                    name: name,
+                    phone: phone || 'Not provided',
+                    email: email || 'Not provided',
+                    joinDate: new Date().toISOString().split('T')[0]
+                };
+                
+                appData.members.push(newMember);
+                
+                appData.payments[newId] = {};
+                Object.keys(appData.years).forEach(year => {
+                    appData.payments[newId][year] = Array(appData.years[year].months.length).fill(null);
+                });
+                
+                renderYears();
+                await saveData();
+                
+                logActivity('added a new member', `Added member: ${name} (Phone: ${phone}, Email: ${email})`);
+                
+                hideAddMemberModal();
+                showCustomAlert('✅ Member added successfully!', 'Success', 'success');
+            } else {
+                showCustomAlert('❌ Please enter member name!', 'Input Error', 'warning');
+            }
+        }
+
+        function showManageMembersModal() {
+            if (!requireAuth()) return;
+            
+            const body = document.getElementById('manageMembersBody');
+            body.innerHTML = '';
+            
+            appData.members.forEach(member => {
+                const totalPaid = Object.keys(appData.years).reduce((sum, year) => 
+                    sum + (appData.payments[member.id]?.[year] || []).reduce((s, v) => s + (parseFloat(v) || 0), 0), 0);
+                
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>
+                        <input type="text" value="${member.name}" id="name-${member.id}" style="width: 100%;">
+                    </td>
+                    <td>
+                        <input type="text" value="${member.phone}" id="phone-${member.id}" style="width: 100%;">
+                    </td>
+                    <td>
+                        <input type="email" value="${member.email}" id="email-${member.id}" style="width: 100%;">
+                    </td>
+                    <td>${member.joinDate}</td>
+                    <td><span class="taka-symbol">৳</span>${totalPaid.toFixed(2)}</td>
+                    <td>
+                        <button class="edit-btn" onclick="updateMember(${member.id})">💾 Save</button>
+                        <button class="delete-btn" onclick="deleteMemberConfirmation(${member.id})">🗑️ Delete</button>
+                    </td>
+                `;
+                body.appendChild(row);
+            });
+            
+            document.getElementById('manageMembersModal').style.display = 'flex';
+        }
+
+        function hideManageMembersModal() {
+            document.getElementById('manageMembersModal').style.display = 'none';
+        }
+
+        async function updateMember(memberId) {
+            const name = document.getElementById(`name-${memberId}`).value.trim();
+            const phone = document.getElementById(`phone-${memberId}`).value.trim();
+            const email = document.getElementById(`email-${memberId}`).value.trim();
+            
+            if (name) {
+                const member = appData.members.find(m => m.id === memberId);
+                if (member) {
+                    const oldName = member.name;
+                    member.name = name;
+                    member.phone = phone;
+                    member.email = email;
+                    renderYears();
+                    await saveData();
+                    
+                    logActivity('updated member information', `Updated member: ${oldName} -> ${name} (Phone: ${phone}, Email: ${email})`);
+                    
+                    showCustomAlert('✅ Member updated successfully!', 'Success', 'success');
+                }
+            } else {
+                showCustomAlert('❌ Member name cannot be empty!', 'Input Error', 'warning');
+            }
+        }
+
+        function deleteMemberConfirmation(memberId) {
+            if (!requireAuth()) return;
+            const member = appData.members.find(m => m.id === memberId);
+            if (!member) return;
+            
+            // No password check required for this minor deletion
+            showCustomConfirm(`Are you sure you want to delete member ${member.name}? This will also delete all their payment records!`, 'Confirm Deletion', 'danger', (confirmed) => {
+                if (confirmed) {
+                    deleteMemberConfirmed(memberId, member.name);
+                }
+            });
+        }
+
+        async function deleteMemberConfirmed(memberId, memberName) {
+            appData.members = appData.members.filter(m => m.id !== memberId);
+            delete appData.payments[memberId];
+            renderYears();
+            await saveData();
+            
+            logActivity('deleted a member', `Deleted member: ${memberName}`);
+            
+            hideManageMembersModal();
+            showCustomAlert(`✅ Member ${memberName} deleted successfully!`, 'Success', 'success');
+        }
+
+        // ========== PAYMENT MANAGEMENT ==========
+
+        async function updatePayment(memberId, year, monthIndex, value) {
+            if (!appData.settings.isAuthenticated) {
+                showCustomAlert('🔐 Admin access required to modify payments!', 'Authorization Required', 'danger');
+                return;
+            }
+            
+            if (!appData.payments[memberId]) {
+                appData.payments[memberId] = {};
+            }
+            if (!appData.payments[memberId][year]) {
+                appData.payments[memberId][year] = Array(appData.years[year].months.length).fill(null);
+            }
+            
+            const oldValue = appData.payments[memberId][year][monthIndex];
+            appData.payments[memberId][year][monthIndex] = value ? parseFloat(value) : null;
+            
+            const member = appData.members.find(m => m.id === memberId);
+            const monthName = appData.years[year].months[monthIndex];
+            
+            renderYearTable(year);
+            updateDashboard();
+            await saveData();
+            
+            if (oldValue !== appData.payments[memberId][year][monthIndex]) {
+                const action = appData.payments[memberId][year][monthIndex] ? 
+                    `added payment for ${monthName}` : `removed payment for ${monthName}`;
+                
+                logActivity('updated payment', 
+                    `${appData.settings.currentAdmin} ${action} for ${member.name} (Year: ${year}, Amount: ৳${value || 0})`);
+                
+                if (appData.payments[memberId][year][monthIndex] && member.email) {
+                    sendPaymentNotification(member, value, year, monthName);
+                }
+            }
+        }
+
+        // ========== DONATION MANAGEMENT ==========
+        function showAddDonationModal() {
+            if (!requireAuth()) return;
+            document.getElementById('donationDate').value = new Date().toISOString().split('T')[0];
+            document.getElementById('donorName').value = '';
+            document.getElementById('donationAmount').value = '';
+            document.getElementById('donationNote').value = '';
+            document.getElementById('donationModal').style.display = 'flex';
+        }
+
+        function hideDonationModal() {
+            document.getElementById('donationModal').style.display = 'none';
+        }
+
+        async function confirmAddDonation() {
+            const date = document.getElementById('donationDate').value;
+            const name = document.getElementById('donorName').value.trim();
+            const amount = parseFloat(document.getElementById('donationAmount').value);
+            const note = document.getElementById('donationNote').value.trim();
+            
+            if (!date || !name || !amount) {
+                showCustomAlert('❌ Please enter Date, Donor Name, and Amount.', 'Input Error', 'warning');
+                return;
+            }
+
+            appData.donations.push({ date, name, amount, note: note || '' });
+            renderDonations();
+            updateDashboard();
+            updateFinance();
+            await saveData();
+            
+            logActivity('added donation', 
+                `${appData.settings.currentAdmin} added donation from ${name} (Amount: ৳${amount}, Date: ${date})`);
+
+            hideDonationModal();
+            showCustomAlert('✅ Donation successfully recorded!', 'Success', 'success');
+        }
+
+        function renderDonations() {
+            const donationsBody = document.getElementById('donationsBody');
+            donationsBody.innerHTML = '';
+            
+            appData.donations.forEach((donation, idx) => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${donation.date}</td>
+                    <td>${donation.name}</td>
+                    <td><span class="taka-symbol">৳</span>${donation.amount.toFixed(2)}</td>
+                    <td>${donation.note}</td>
+                    <td>
+                        ${appData.settings.isAuthenticated ? 
+                            `<button class="delete-btn" onclick="deleteDonationConfirmation(${idx})">Delete</button>` : 
+                            ''}
+                    </td>
+                `;
+                donationsBody.appendChild(row);
+            });
+
+            const total = appData.donations.reduce((sum, d) => sum + d.amount, 0);
+            document.getElementById('totalDonations').textContent = total.toFixed(2);
+        }
+
+        function deleteDonationConfirmation(index) {
+            if (!requireAuth()) return;
+            const donation = appData.donations[index];
+            if (!donation) return;
+
+            // No password check required for this minor deletion
+            showCustomConfirm(`Are you sure you want to delete the donation from ${donation.name} for ৳${donation.amount.toFixed(2)}?`, 'Confirm Deletion', 'danger', (confirmed) => {
+                if (confirmed) {
+                    deleteDonationConfirmed(index, donation.name, donation.amount, donation.date);
+                }
+            });
+        }
+
+        async function deleteDonationConfirmed(index, name, amount, date) {
+            appData.donations.splice(index, 1);
+            renderDonations();
+            updateDashboard();
+            updateFinance();
+            await saveData();
+            
+            logActivity('deleted donation', 
+                `${appData.settings.currentAdmin} deleted donation from ${name} (Amount: ৳${amount}, Date: ${date})`);
+            
+            showCustomAlert('✅ Donation deleted successfully!', 'Success', 'success');
+        }
+
+        // ========== EXPENSE MANAGEMENT ==========
+
+        function showAddExpenseModal() {
+            if (!requireAuth()) return;
+            document.getElementById('expenseDate').value = new Date().toISOString().split('T')[0];
+            document.getElementById('addExpenseModal').style.display = 'flex';
+        }
+
+        function hideAddExpenseModal() {
+            document.getElementById('addExpenseModal').style.display = 'none';
+            document.getElementById('expenseAmount').value = '';
+            document.getElementById('expenseDescription').value = '';
+        }
+
+        async function confirmAddExpense() {
+            const date = document.getElementById('expenseDate').value;
+            const amount = parseFloat(document.getElementById('expenseAmount').value);
+            const category = document.getElementById('expenseCategory').value;
+            const description = document.getElementById('expenseDescription').value.trim();
+            
+            if (!date || !amount || !description) {
+                showCustomAlert('❌ Please fill all required fields!', 'Input Error', 'warning');
+                return;
+            }
+            
+            const expense = {
+                id: Math.max(...appData.expenses.map(e => e.id), 0) + 1,
+                date: date,
+                amount: amount,
+                category: category,
+                description: description,
+                addedBy: appData.settings.currentAdmin,
+                addedOn: new Date().toISOString()
+            };
+            
+            appData.expenses.push(expense);
+            renderExpenses();
+            updateFinance();
+            await saveData();
+            
+            logActivity('added expense', 
+                `${appData.settings.currentAdmin} added expense (Amount: ৳${amount}, Category: ${category}, Description: ${description})`);
+            
+            hideAddExpenseModal();
+            showCustomAlert('✅ Expense added successfully!', 'Success', 'success');
+        }
+
+        function renderExpenses() {
+            const expensesBody = document.getElementById('expensesBody');
+            expensesBody.innerHTML = '';
+            
+            appData.expenses.sort((a, b) => new Date(b.date) - new Date(a.date));
+            
+            appData.expenses.forEach((expense, idx) => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${expense.date}</td>
+                    <td><span class="taka-symbol">৳</span>${expense.amount.toFixed(2)}</td>
+                    <td>${expense.category}</td>
+                    <td>${expense.description}</td>
+                    <td>
+                        ${appData.settings.isAuthenticated ? 
+                            `<button class="delete-btn" onclick="deleteExpenseConfirmation(${expense.id})">Delete</button>` : 
+                            ''}
+                    </td>
+                `;
+                expensesBody.appendChild(row);
+            });
+        }
+
+        function deleteExpenseConfirmation(expenseId) {
+            if (!requireAuth()) return;
+            const expense = appData.expenses.find(e => e.id === expenseId);
+            if (!expense) return;
+
+            // No password check required for this minor deletion
+            showCustomConfirm(`Are you sure you want to delete the expense of ৳${expense.amount.toFixed(2)} (${expense.category})?`, 'Confirm Deletion', 'danger', (confirmed) => {
+                if (confirmed) {
+                    deleteExpenseConfirmed(expenseId, expense.amount, expense.category, expense.description);
+                }
+            });
+        }
+
+        async function deleteExpenseConfirmed(expenseId, amount, category, description) {
+            appData.expenses = appData.expenses.filter(e => e.id !== expenseId);
+            renderExpenses();
+            updateFinance();
+            await saveData();
+            
+            logActivity('deleted expense', 
+                `${appData.settings.currentAdmin} deleted expense (Amount: ৳${amount}, Category: ${category}, Description: ${description})`);
+            
+            showCustomAlert('✅ Expense deleted successfully!', 'Success', 'success');
+        }
+
+        // ========== DASHBOARD FUNCTIONS (No changes needed) ==========
+
+        function updateDashboard() {
+            const totalCollected = getTotalCollected();
+            const totalDonations = getTotalDonations();
+            
+            const today = new Date();
+            let currentMonthCollection = 0;
+            let paidMembers = 0;
+            let dueMembers = 0;
+
+            Object.keys(appData.years).forEach(year => {
+                const yearData = appData.years[year];
+                yearData.monthDates.forEach((monthDate, index) => {
+                    const nextMonth = yearData.monthDates[index + 1] || new Date(monthDate.getFullYear(), monthDate.getMonth() + 1, 1);
+                    if (today >= monthDate && today < nextMonth) {
+                        currentMonthCollection = appData.members.reduce((sum, member) => 
+                            sum + (parseFloat(appData.payments[member.id]?.[year]?.[index]) || 0), 0);
+                        
+                        paidMembers = appData.members.filter(member => 
+                            appData.payments[member.id]?.[year]?.[index]).length;
+                        dueMembers = appData.members.length - paidMembers;
+                    }
+                });
+            });
+
+            document.getElementById('totalCollected').textContent = `৳${(totalCollected + totalDonations).toFixed(2)}`;
+            document.getElementById('currentMonthCollection').textContent = `৳${currentMonthCollection.toFixed(2)}`;
+            document.getElementById('paidCount').textContent = paidMembers;
+            document.getElementById('dueCount').textContent = dueMembers;
+
+            updateCharts();
+        }
+
+        function updateCharts() {
+            const allMonths = [];
+            const monthlyData = [];
+            
+            Object.keys(appData.years).sort().forEach(year => {
+                appData.years[year].months.forEach((month, index) => {
+                    allMonths.push(month);
+                    const monthTotal = appData.members.reduce((sum, member) => 
+                        sum + (parseFloat(appData.payments[member.id]?.[year]?.[index]) || 0), 0);
+                    monthlyData.push(monthTotal);
+                });
+            });
+
+            const contributorData = appData.members.map(member => ({
+                name: member.name,
+                total: Object.keys(appData.years).reduce((sum, year) => 
+                    sum + (appData.payments[member.id]?.[year] || []).reduce((s, v) => s + (parseFloat(v) || 0), 0), 0)
+            })).sort((a, b) => b.total - a.total).slice(0, 10);
+
+            if (monthlyChart) monthlyChart.destroy();
+            if (contributorsChart) contributorsChart.destroy();
+
+            const ctx1 = document.getElementById('monthlyChart').getContext('2d');
+            monthlyChart = new Chart(ctx1, {
+                type: 'line',
+                data: {
+                    labels: allMonths,
+                    datasets: [{
+                        label: 'Monthly Collection (৳)',
+                        data: monthlyData,
+                        borderColor: '#667eea',
+                        backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                        tension: 0.4,
+                        fill: true
+                    }]
+                },
+                options: { 
+                    responsive: true, 
+                    maintainAspectRatio: true,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return '৳' + value;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+
+            const ctx2 = document.getElementById('contributorsChart').getContext('2d');
+            contributorsChart = new Chart(ctx2, {
+                type: 'bar',
+                data: {
+                    labels: contributorData.map(c => c.name),
+                    datasets: [{
+                        label: 'Total Contribution (৳)',
+                        data: contributorData.map(c => c.total),
+                        backgroundColor: '#764ba2'
+                    }]
+                },
+                options: { 
+                    responsive: true, 
+                    maintainAspectRatio: true,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return '৳' + value;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // ========== FINANCE FUNCTIONS (No changes needed) ==========
+
+        function updateFinance() {
+            const totalIncome = getTotalCollected() + getTotalDonations();
+            const totalExpenditure = getTotalExpenditure();
+            const currentBalance = totalIncome - totalExpenditure;
+            
+            document.getElementById('totalIncome').textContent = `৳${totalIncome.toFixed(2)}`;
+            document.getElementById('totalExpenditure').textContent = `৳${totalExpenditure.toFixed(2)}`;
+            document.getElementById('currentBalance').textContent = `৳${currentBalance.toFixed(2)}`;
+            
+            updateFinanceChart();
+        }
+
+        function updateFinanceChart() {
+            const incomeByMonth = {};
+            const expenseByMonth = {};
+            
+            Object.keys(appData.years).sort().forEach(year => {
+                appData.years[year].months.forEach(month => {
+                    incomeByMonth[month] = 0;
+                    expenseByMonth[month] = 0;
+                });
+            });
+            
+            Object.keys(appData.years).sort().forEach(year => {
+                appData.years[year].months.forEach((month, index) => {
+                    const monthIncome = appData.members.reduce((sum, member) => 
+                        sum + (parseFloat(appData.payments[member.id]?.[year]?.[index]) || 0), 0);
+                    incomeByMonth[month] += monthIncome;
+                });
+            });
+            
+            appData.expenses.forEach(expense => {
+                const expenseDate = new Date(expense.date);
+                const expenseMonth = expenseDate.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+                
+                if (expenseByMonth[expenseMonth] !== undefined) {
+                    expenseByMonth[expenseMonth] += expense.amount;
+                }
+            });
+            
+            const months = Object.keys(incomeByMonth);
+            const incomeData = months.map(month => incomeByMonth[month]);
+            const expenseData = months.map(month => expenseByMonth[month]);
+            
+            if (financeChart) financeChart.destroy();
+            
+            const ctx = document.getElementById('financeChart').getContext('2d');
+            financeChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: months,
+                    datasets: [
+                        {
+                            label: 'Collection (৳)',
+                            data: incomeData,
+                            backgroundColor: '#28a745'
+                        },
+                        {
+                            label: 'Expenditure (৳)',
+                            data: expenseData,
+                            backgroundColor: '#dc3545'
+                        }
+                    ]
+                },
+                options: { 
+                    responsive: true, 
+                    maintainAspectRatio: true,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return '৳' + value;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function getTotalExpenditure() {
+            return appData.expenses.reduce((sum, expense) => sum + expense.amount, 0);
+        }
+
+        // ========== REPORTS FUNCTIONS (No changes needed) ==========
+
+        function updateReports() {
+            const today = new Date();
+            let currentPaidMembers = [];
+            let currentDueMembers = [];
+
+            Object.keys(appData.years).forEach(year => {
+                const yearData = appData.years[year];
+                yearData.monthDates.forEach((monthDate, index) => {
+                    const nextMonth = yearData.monthDates[index + 1] || new Date(monthDate.getFullYear(), monthDate.getMonth() + 1, 1);
+                    if (today >= monthDate && today < nextMonth) {
+                        currentPaidMembers = appData.members.filter(member => 
+                            appData.payments[member.id]?.[year]?.[index]);
+                        currentDueMembers = appData.members.filter(member => 
+                            !appData.payments[member.id]?.[year]?.[index]);
+                    }
+                });
+            });
+
+            document.getElementById('paidCountReport').textContent = currentPaidMembers.length;
+            document.getElementById('dueCountReport').textContent = currentDueMembers.length;
+
+            const paidList = document.getElementById('paidList');
+            const dueList = document.getElementById('dueList');
+            
+            paidList.innerHTML = '';
+            dueList.innerHTML = '';
+
+            currentPaidMembers.forEach(member => {
+                const div = document.createElement('div');
+                div.className = 'member-item paid';
+                div.textContent = member.name;
+                paidList.appendChild(div);
+            });
+
+            currentDueMembers.forEach(member => {
+                const div = document.createElement('div');
+                div.className = 'member-item due';
+                div.textContent = member.name;
+                dueList.appendChild(div);
+            });
+
+            const contributionSummary = document.getElementById('contributionSummary');
+            contributionSummary.innerHTML = '';
+            
+            appData.members.forEach(member => {
+                const total = Object.keys(appData.years).reduce((sum, year) => 
+                    sum + (appData.payments[member.id]?.[year] || []).reduce((s, v) => s + (parseFloat(v) || 0), 0), 0);
+                
+                let monthsPaid = 0;
+                let totalMonths = 0;
+                
+                Object.keys(appData.years).forEach(year => {
+                    const yearPayments = appData.payments[member.id]?.[year] || [];
+                    monthsPaid += yearPayments.filter(val => val !== null).length;
+                    totalMonths += yearPayments.length;
+                });
+                
+                const monthsDue = totalMonths - monthsPaid;
+                
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td><strong>${member.name}</strong></td>
+                    <td><span class="taka-symbol">৳</span>${total.toFixed(2)}</td>
+                    <td>${monthsPaid}</td>
+                    <td>${monthsDue}</td>
+                    <td>
+                        ${appData.settings.isAuthenticated ? 
+                            `<button class="delete-btn" onclick="deleteMemberConfirmation(${member.id})">Delete</button>` : 
+                            ''}
+                    </td>
+                `;
+                contributionSummary.appendChild(row);
+            });
+        }
+
+        function toggleMemberList(type) {
+            const section = document.getElementById(type + 'ListSection');
+            if (section.style.display === 'none') {
+                section.style.display = 'block';
+            } else {
+                section.style.display = 'none';
+            }
+        }
+
+        // ========== EXPORT FUNCTIONALITY (Preserved from previous update) ==========
+
+        function showExportModal() {
+            document.getElementById('exportModal').style.display = 'flex';
+            
+            const yearSelect = document.getElementById('exportYearSelect');
+            yearSelect.innerHTML = '';
+            Object.keys(appData.years).sort().forEach(year => {
+                yearSelect.innerHTML += `<option value="${year}">${year}</option>`;
+            });
+            
+            document.getElementById('exportData').addEventListener('change', function() {
+                const yearGroup = document.getElementById('yearSelectionGroup');
+                yearGroup.style.display = this.value === 'members' ? 'block' : 'none';
+            });
+        }
+
+        function hideExportModal() {
+            document.getElementById('exportModal').style.display = 'none';
+        }
+
+        function exportData() {
+            const format = document.getElementById('exportFormat').value;
+            const dataType = document.getElementById('exportData').value;
+            const selectedYear = document.getElementById('exportYearSelect').value;
+            
+            switch(format) {
+                case 'excel':
+                    exportToExcel(dataType, selectedYear);
+                    break;
+                case 'pdf':
+                    exportToPDF(dataType, selectedYear);
+                    break;
+            }
+            
+            hideExportModal();
+            logActivity('exported data', `Exported ${dataType} data as ${format.toUpperCase()}`);
+        }
+
+        function exportToExcel(dataType, selectedYear) {
+            try {
+                const wb = XLSX.utils.book_new();
+                let fileName = `Rangdhanu_Charity_Report_${new Date().toISOString().split('T')[0]}`;
+                const members = appData.members;
+                const payments = appData.payments;
+                const years = appData.years;
+
+                const addSummarySheet = () => {
+                    const summaryData = [
+                        ['Rangdhanu Charity Fund - Financial Summary'],
+                        ['Generated on:', new Date().toLocaleString()],
+                        ['App Version:', appData.appVersion],
+                        [''],
+                        ['KEY STATISTICS'],
+                        ['Total Members:', members.length],
+                        ['Total Member Collections (৳):', getTotalCollected().toFixed(2)],
+                        ['Total Public Donations (৳):', getTotalDonations().toFixed(2)],
+                        ['Total Collection (৳):', (getTotalCollected() + getTotalDonations()).toFixed(2)],
+                        ['Total Expenditure (৳):', getTotalExpenditure().toFixed(2)],
+                        ['Current Balance (৳):', (getTotalCollected() + getTotalDonations() - getTotalExpenditure()).toFixed(2)]
+                    ];
+                    const ws = XLSX.utils.aoa_to_sheet(summaryData);
+                    XLSX.utils.book_append_sheet(wb, ws, "Financial Summary");
+                };
+
+
+                if (dataType === 'financial' || dataType === 'all') {
+                    addSummarySheet();
+
+                    const expenseData = [['Date', 'Amount (৳)', 'Category', 'Description', 'Added By', 'Added On']];
+                    appData.expenses.forEach(expense => {
+                        expenseData.push([
+                            expense.date, 
+                            expense.amount, 
+                            expense.category, 
+                            expense.description,
+                            expense.addedBy,
+                            new Date(expense.addedOn).toLocaleString()
+                        ]);
+                    });
+                    const ws3 = XLSX.utils.aoa_to_sheet(expenseData);
+                    XLSX.utils.book_append_sheet(wb, ws3, "Detailed Expenses");
+                    fileName = 'Rangdhanu_Financial_Report';
+                }
+
+                if (dataType === 'members' || dataType === 'all') {
+                    const paymentData = [];
+                    const selectedYearRange = dataType === 'members' && selectedYear ? [selectedYear] : Object.keys(years).sort();
+                    
+                    const headers = ['Member Name', 'Phone', 'Email', 'Join Date'];
+                    selectedYearRange.forEach(year => {
+                        years[year].months.forEach(month => {
+                            headers.push(`${year} - ${month} (৳)`);
+                        });
+                    });
+                    headers.push('Total Contribution (৳)');
+                    paymentData.push(headers);
+                    
+                    members.forEach(member => {
+                        const row = [member.name, member.phone, member.email, member.joinDate];
+                        let total = 0;
+                        
+                        selectedYearRange.forEach(year => {
+                            years[year].months.forEach((month, mIdx) => {
+                                const amount = payments[member.id]?.[year]?.[mIdx] || 0;
+                                row.push(amount);
+                                total += parseFloat(amount) || 0;
+                            });
+                        });
+                        row.push(total.toFixed(2));
+                        paymentData.push(row);
+                    });
+                    
+                    const ws = XLSX.utils.aoa_to_sheet(paymentData);
+                    XLSX.utils.book_append_sheet(wb, ws, `Member Payments ${selectedYear || 'All'}`);
+                    
+                    if (dataType === 'members') {
+                        addSummarySheet();
+                        fileName = `Rangdhanu_Members_Sheet_${selectedYear || 'All'}`;
+                    }
+                }
+
+                if (dataType === 'donations' || dataType === 'all') {
+                    const donationData = [['Date', 'Donor Name', 'Amount (৳)', 'Note']];
+                    appData.donations.forEach(donation => {
+                        donationData.push([donation.date, donation.name, donation.amount.toFixed(2), donation.note]);
+                    });
+                    
+                    const ws2 = XLSX.utils.aoa_to_sheet(donationData);
+                    XLSX.utils.book_append_sheet(wb, ws2, "Public Donations");
+                    
+                    if (dataType === 'donations') {
+                        addSummarySheet();
+                        fileName = 'Rangdhanu_Donations_Report';
+                    }
+                }
+
+                if (dataType === 'expenses') {
+                    const expenseData = [['Date', 'Amount (৳)', 'Category', 'Description', 'Added By', 'Added On']];
+                    appData.expenses.forEach(expense => {
+                        expenseData.push([
+                            expense.date, 
+                            expense.amount.toFixed(2), 
+                            expense.category, 
+                            expense.description,
+                            expense.addedBy,
+                            new Date(expense.addedOn).toLocaleString()
+                        ]);
+                    });
+                    const ws3 = XLSX.utils.aoa_to_sheet(expenseData);
+                    XLSX.utils.book_append_sheet(wb, ws3, "Detailed Expenses");
+                    addSummarySheet();
+                    fileName = 'Rangdhanu_Expenses_Report';
+                }
+                
+                if (dataType === 'logs' || dataType === 'all') {
+                    const logData = [['Timestamp', 'Admin', 'Action', 'Details']];
+                    appData.activityLogs.forEach(log => {
+                        logData.push([
+                            new Date(log.timestamp).toLocaleString(),
+                            log.admin,
+                            log.action,
+                            log.details
+                        ]);
+                    });
+                    
+                    const ws4 = XLSX.utils.aoa_to_sheet(logData);
+                    XLSX.utils.book_append_sheet(wb, ws4, "Activity Logs");
+                    if (dataType === 'logs') {
+                        fileName = 'Rangdhanu_Activity_Logs';
+                    }
+                }
+
+                XLSX.writeFile(wb, `${fileName}_${new Date().toISOString().split('T')[0]}.xlsx`);
+                showCustomAlert('✅ Excel file exported successfully with comprehensive sheets!', 'Export Success', 'success');
+            } catch (error) {
+                showCustomAlert('❌ Error exporting Excel file: ' + error.message, 'Export Error', 'danger');
+            }
+        }
+
+        function exportToPDF(dataType, selectedYear) {
+            try {
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF();
+                
+                const title = 'Rangdhanu Charity Fund - Financial Report';
+                doc.setFontSize(20);
+                doc.setTextColor(40, 40, 40);
+                doc.text(title, 105, 15, { align: 'center' });
+                doc.setFontSize(12);
+                doc.setTextColor(100, 100, 100);
+                doc.text(`Generated on: ${new Date().toLocaleDateString()} | Data: ${document.getElementById('exportData').options[document.getElementById('exportData').selectedIndex].text}`, 105, 22, { align: 'center' });
+                
+                let yPosition = 35;
+                const margin = 14;
+                const primaryColor = [102, 126, 234]; // #667eea
+
+                const addSectionTitle = (titleText) => {
+                    if (yPosition > 270) {
+                        doc.addPage();
+                        yPosition = 20;
+                    }
+                    doc.setFontSize(16);
+                    doc.setTextColor(40, 40, 40);
+                    doc.text(titleText, margin, yPosition);
+                    yPosition += 8;
+                };
+
+                const addSummaryTable = () => {
+                    const totalIncome = getTotalCollected() + getTotalDonations();
+                    const totalExpenditure = getTotalExpenditure();
+                    const currentBalance = totalIncome - totalExpenditure;
+
+                    addSectionTitle('I. Overall Financial Summary');
+
+                    const summaryData = [
+                        ['Total Members', appData.members.length.toString()],
+                        ['Total Member Collections', `৳${getTotalCollected().toFixed(2)}`],
+                        ['Total Public Donations', `৳${getTotalDonations().toFixed(2)}`],
+                        ['Total Collection (Collection + Donations)', `৳${totalIncome.toFixed(2)}`],
+                        ['Total Expenditure', `৳${totalExpenditure.toFixed(2)}`],
+                        ['Current Balance', `৳${currentBalance.toFixed(2)}`]
+                    ];
+
+                    doc.autoTable({
+                        startY: yPosition,
+                        head: [['Metric', 'Value']],
+                        body: summaryData,
+                        theme: 'grid',
+                        headStyles: { fillColor: primaryColor, fontSize: 10 },
+                        styles: { fontSize: 10, cellPadding: 2 },
+                        columnStyles: { 0: { fontStyle: 'bold' } },
+                        margin: { left: margin, right: margin }
+                    });
+                    yPosition = doc.lastAutoTable.finalY + 15;
+                };
+
+                addSummaryTable();
+
+                if (dataType === 'members' || dataType === 'all') {
+                    addSectionTitle(`II. Detailed Member Payments - ${selectedYear || 'All Time'}`);
+                    
+                    const memberRows = [];
+                    const allMemberHeaders = ['Member', 'Total ৳', 'Paid Months', 'Due Months'];
+                    
+                    appData.members.forEach(member => {
+                        let total = 0;
+                        let paidMonths = 0;
+                        let totalMonths = 0;
+                        
+                        Object.keys(appData.years).sort().forEach(year => {
+                            if (dataType === 'members' && selectedYear && year !== selectedYear) return;
+                            const yearPayments = appData.payments[member.id]?.[year] || [];
+                            paidMonths += yearPayments.filter(val => val !== null).length;
+                            totalMonths += yearPayments.length;
+                            total += yearPayments.reduce((sum, val) => sum + (parseFloat(val) || 0), 0);
+                        });
+                        
+                        memberRows.push([
+                            member.name, 
+                            `৳${total.toFixed(2)}`, 
+                            paidMonths, 
+                            (totalMonths - paidMonths)
+                        ]);
+                    });
+                    
+                    doc.autoTable({
+                        startY: yPosition,
+                        head: [allMemberHeaders],
+                        body: memberRows,
+                        theme: 'grid',
+                        headStyles: { fillColor: primaryColor, fontSize: 10 },
+                        styles: { fontSize: 9, cellPadding: 2 },
+                        columnStyles: { 1: { fontStyle: 'bold' } },
+                        margin: { left: margin, right: margin }
+                    });
+                    yPosition = doc.lastAutoTable.finalY + 15;
+                }
+
+                if (dataType === 'donations' || dataType === 'all' || dataType === 'financial') {
+                    addSectionTitle('III. Public Donations Records');
+                    
+                    const donationHeaders = ['Date', 'Donor Name', 'Amount (৳)', 'Note'];
+                    const donationRows = appData.donations.map(d => [
+                        d.date, 
+                        d.name, 
+                        `৳${d.amount.toFixed(2)}`, 
+                        d.note.substring(0, 50) + (d.note.length > 50 ? '...' : '')
+                    ]);
+                    
+                    if (donationRows.length > 0) {
+                        doc.autoTable({
+                            startY: yPosition,
+                            head: [donationHeaders],
+                            body: donationRows,
+                            theme: 'grid',
+                            headStyles: { fillColor: primaryColor, fontSize: 10 },
+                            styles: { fontSize: 9, cellPadding: 2 },
+                            margin: { left: margin, right: margin }
+                        });
+                    } else {
+                        doc.setFontSize(10);
+                        doc.text('No public donation records found.', margin, yPosition + 5);
+                        doc.lastAutoTable = { finalY: yPosition + 10 };
+                    }
+                    yPosition = doc.lastAutoTable.finalY + 15;
+                }
+                
+                if (dataType === 'expenses' || dataType === 'all' || dataType === 'financial') {
+                    addSectionTitle('IV. Detailed Expenditure Records');
+
+                    const expenseHeaders = ['Date', 'Amount (৳)', 'Category', 'Description'];
+                    const expenseRows = appData.expenses.map(e => [
+                        e.date, 
+                        `৳${e.amount.toFixed(2)}`, 
+                        e.category, 
+                        e.description.substring(0, 70) + (e.description.length > 70 ? '...' : '')
+                    ]);
+                    
+                    if (expenseRows.length > 0) {
+                        doc.autoTable({
+                            startY: yPosition,
+                            head: [expenseHeaders],
+                            body: expenseRows,
+                            theme: 'grid',
+                            headStyles: { fillColor: primaryColor, fontSize: 10 },
+                            styles: { fontSize: 9, cellPadding: 2 },
+                            margin: { left: margin, right: margin }
+                        });
+                    } else {
+                        doc.setFontSize(10);
+                        doc.text('No expenditure records found.', margin, yPosition + 5);
+                        doc.lastAutoTable = { finalY: yPosition + 10 };
+                    }
+                    yPosition = doc.lastAutoTable.finalY + 15;
+                }
+
+                if (dataType === 'logs' || dataType === 'all') {
+                    addSectionTitle('V. Admin Activity Logs');
+                    
+                    const logHeaders = ['Timestamp', 'Admin', 'Action', 'Details'];
+                    const logRows = appData.activityLogs.map(log => [
+                        new Date(log.timestamp).toLocaleString(),
+                        log.admin,
+                        log.action,
+                        log.details.substring(0, 80) + (log.details.length > 80 ? '...' : '')
+                    ]);
+                    
+                    if (logRows.length > 0) {
+                        doc.autoTable({
+                            startY: yPosition,
+                            head: [logHeaders],
+                            body: logRows.slice(0, 50),
+                            theme: 'grid',
+                            headStyles: { fillColor: primaryColor, fontSize: 10 },
+                            styles: { fontSize: 8, cellPadding: 1 },
+                            margin: { left: margin, right: margin }
+                        });
+                    } else {
+                        doc.setFontSize(10);
+                        doc.text('No activity logs found.', margin, yPosition + 5);
+                    }
+                }
+                
+                doc.save(`Rangdhanu_Charity_Fund_Report_${new Date().toISOString().split('T')[0]}.pdf`);
+                showCustomAlert('✅ PDF report exported successfully with comprehensive details!', 'Export Success', 'success');
+            } catch (error) {
+                showCustomAlert('❌ Error exporting PDF: ' + error.message, 'Export Error', 'danger');
+            }
+        }
+
+
+        // ========== PASSWORD RECOVERY SYSTEM (No changes needed) ==========
+
+        function showForgotPasswordModal() {
+            hideLoginModal();
+            document.getElementById('forgotPasswordModal').style.display = 'flex';
+        }
+
+        function hideForgotPasswordModal() {
+            document.getElementById('forgotPasswordModal').style.display = 'none';
+            document.getElementById('recoveryEmail').value = '';
+            document.getElementById('verificationCode').value = '';
+            document.getElementById('newPassword').value = '';
+        }
+
+        async function requestVerificationCode() {
+            const email = document.getElementById('recoveryEmail').value;
+            if (!email) {
+                showCustomAlert('❌ Please enter your admin email!', 'Input Error', 'warning');
+                return;
+            }
+            
+            const isAdminEmail = appData.settings.adminContacts.some(contact => 
+                contact.email.toLowerCase() === email.toLowerCase());
+            
+            if (!isAdminEmail) {
+                showCustomAlert('❌ This email is not registered as an admin contact!', 'Email Error', 'danger');
+                return;
+            }
+            
+            const code = Math.floor(100000 + Math.random() * 900000).toString();
+            verificationCodes[email] = code;
+            
+            const emailSent = await sendPasswordRecoveryEmail(email, code);
+            
+            if (emailSent) {
+                showCustomAlert(`✅ Verification code sent to ${email}. Please check your inbox.`, 'Code Sent', 'success');
+            }
+        }
+
+        async function resetPassword() {
+            const email = document.getElementById('recoveryEmail').value;
+            const code = document.getElementById('verificationCode').value;
+            const newPassword = document.getElementById('newPassword').value;
+            
+            if (!email || !code || !newPassword) {
+                showCustomAlert('❌ Please fill all fields!', 'Input Error', 'warning');
+                return;
+            }
+            
+            const storedCode = verificationCodes[email];
+            
+            if (storedCode && storedCode === code) {
+                appData.settings.adminPassword = newPassword;
+                await saveData();
+                delete verificationCodes[email];
+                hideForgotPasswordModal();
+                showCustomAlert('✅ Password reset successfully! You can now login with the new password.', 'Success', 'success');
+            } else {
+                showCustomAlert('❌ Invalid verification code!', 'Error', 'danger');
+            }
+        }
+
+        // ========== ADMIN CONTACTS MANAGEMENT ==========
+
+        function showAdminContactsModal() {
+            if (!requireAuth()) return;
+            
+            const container = document.getElementById('adminContactsContainer');
+            container.innerHTML = '';
+            
+            appData.settings.adminContacts.forEach((contact, index) => {
+                const contactDiv = document.createElement('div');
+                contactDiv.className = 'form-group';
+                contactDiv.style.border = '1px solid #dee2e6';
+                contactDiv.style.padding = '10px';
+                contactDiv.style.borderRadius = '5px';
+                contactDiv.style.marginBottom = '10px';
+                contactDiv.innerHTML = `
+                    <label>Contact ${index + 1}:</label>
+                    <input type="text" value="${contact.name}" placeholder="Name" id="contactName-${index}" style="margin-bottom: 5px;">
+                    <input type="text" value="${contact.phone}" placeholder="Phone" id="contactPhone-${index}" style="margin-bottom: 5px;">
+                    <input type="email" value="${contact.email}" placeholder="Email" id="contactEmail-${index}">
+                    <div style="margin-top: 5px;">
+                        <button class="btn btn-primary" onclick="updateAdminContact(${index})" style="padding: 5px 10px; font-size: 0.8em;">Update</button>
+                        <button class="btn btn-danger" onclick="deleteAdminContactConfirmation(${index})" style="padding: 5px 10px; font-size: 0.8em;">Delete</button>
+                    </div>
+                `;
+                container.appendChild(contactDiv);
+            });
+            
+            document.getElementById('adminContactsModal').style.display = 'flex';
+        }
+
+        function hideAdminContactsModal() {
+            document.getElementById('adminContactsModal').style.display = 'none';
+        }
+
+        function addAdminContact() {
+            appData.settings.adminContacts.push({ name: '', phone: '', email: '' });
+            showAdminContactsModal();
+        }
+
+        async function updateAdminContact(index) {
+            const name = document.getElementById(`contactName-${index}`).value.trim();
+            const phone = document.getElementById(`contactPhone-${index}`).value.trim();
+            const email = document.getElementById(`contactEmail-${index}`).value.trim();
+            
+            if (name && phone) {
+                appData.settings.adminContacts[index] = { name, phone, email };
+                await saveData();
+                showCustomAlert('✅ Contact updated successfully!', 'Success', 'success');
+            } else {
+                showCustomAlert('❌ Name and phone are required!', 'Input Error', 'warning');
+            }
+        }
+
+        function deleteAdminContactConfirmation(index) {
+            if (appData.settings.adminContacts.length <= 1) {
+                showCustomAlert('❌ Cannot delete the only admin contact!', 'Error', 'danger');
+                return;
+            }
+
+            // No password check required for this minor deletion
+            showCustomConfirm('Are you sure you want to delete this admin contact?', 'Confirm Deletion', 'danger', (confirmed) => {
+                if (confirmed) {
+                    deleteAdminContactConfirmed(index);
+                }
+            });
+        }
+
+        async function deleteAdminContactConfirmed(index) {
+            appData.settings.adminContacts.splice(index, 1);
+            await saveData();
+            showAdminContactsModal();
+            showCustomAlert('✅ Contact deleted successfully!', 'Success', 'success');
+        }
+
+        // ========== SYSTEM MANAGEMENT ==========
+
+        function showManageModal() {
+            if (!requireAuth()) return;
+            document.getElementById('manageModal').style.display = 'flex';
+        }
+
+        function hideManageModal() {
+            document.getElementById('manageModal').style.display = 'none';
+        }
+
+        function showBackupModal() {
+            showCustomAlert('✅ Data is automatically backed up to Google Sheets!', 'Backup Status', 'primary');
+            hideManageModal();
+        }
+
+        function showRestoreModal() {
+            showCustomConfirm('Restore from cloud backup? This will overwrite current local data.', 'Confirm Restore', 'warning', (confirmed) => {
+                if (confirmed) {
+                    initializeApp();
+                    showCustomAlert('✅ Data restored successfully from cloud!', 'Success', 'success');
+                }
+            });
+            hideManageModal();
+        }
+
+        // Deletion Step 2: Confirmed (after password check and backup)
+        async function resetAllDataConfirmed() {
+            showLoading('Performing final cloud backup before wiping data...');
+            // Step 1: Force a backup
+            await saveData(); 
+            hideLoading();
+            
+            // Step 2: Perform the actual reset
+            localStorage.removeItem('rangdhanuCharityData');
+            
+            // Log this irreversible action
+            logActivity('!!! DANGEROUS ACTION !!!', `DELETED ALL DATA. Forced a final cloud backup before proceeding.`);
+            
+            // In a real implementation, you would also delete from Google Sheets
+            location.reload();
+        }
+
+        // ========== UTILITY FUNCTIONS ==========
+
+        function getTotalCollected() {
+            let total = 0;
+            appData.members.forEach(member => {
+                Object.keys(appData.years).forEach(year => {
+                    total += (appData.payments[member.id]?.[year] || []).reduce((sum, val) => sum + (parseFloat(val) || 0), 0);
+                });
+            });
+            return total;
+        }
+
+        function getTotalDonations() {
+            return appData.donations.reduce((sum, d) => sum + d.amount, 0);
+        }
+
+        // ========== INITIALIZE APPLICATION ==========
+
+        initializeApp();
+
+        // Auto-save every 30 seconds
+        setInterval(saveData, 30000);
+    </script>
+</body>
+</html>
