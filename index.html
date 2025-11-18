@@ -1415,74 +1415,48 @@
 
         // ========== GOOGLE SHEETS INTEGRATION ==========
 
-        async function saveToGoogleSheets() {
-            if (!isOnline) {
-                console.log('Offline - data saved locally only');
-                localStorage.setItem('rangdhanuCharityData', JSON.stringify(appData));
-                return false;
-            }
+		async function saveToGoogleSheets() {
+			if (!isOnline) {
+				console.log('Offline - data saved locally only');
+				localStorage.setItem('rangdhanuCharityData', JSON.stringify(appData));
+				return false;
+			}
 
-            try {
-                showLoading('Saving to cloud...');
-                
-                // Placeholder fetch call for Google Apps Script
-                const response = await fetch(GOOGLE_SHEETS_CONFIG.scriptUrl, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ action: 'saveData', data: appData })
-                });
+			try {
+				showLoading('Saving to cloud...');
+				
+				console.log('Sending data to Google Sheets...', GOOGLE_SHEETS_CONFIG.scriptUrl);
+				
+				const response = await fetch(GOOGLE_SHEETS_CONFIG.scriptUrl, {
+					method: 'POST',
+					headers: { 
+						'Content-Type': 'application/json' 
+					},
+					body: JSON.stringify({ 
+						action: 'saveData',
+						data: appData 
+					})
+				});
 
-                if (response.ok) {
-                    showSyncStatus('Data saved to cloud successfully!', 'success');
-                    localStorage.setItem('rangdhanuCharityData', JSON.stringify(appData));
-                    hideLoading();
-                    return true;
-                } else {
-                    throw new Error('Failed to save to Google Sheets');
-                }
-            } catch (error) {
-                console.error('Error saving to Google Sheets:', error);
-                showSyncStatus('Failed to save to cloud. Data saved locally.', 'error');
-                localStorage.setItem('rangdhanuCharityData', JSON.stringify(appData));
-                hideLoading();
-                return false;
-            }
-        }
-
-        async function loadFromGoogleSheets() {
-            if (!isOnline) {
-                console.log('Offline - loading from local storage');
-                const localData = localStorage.getItem('rangdhanuCharityData');
-                if (localData) {
-                    return JSON.parse(localData);
-                }
-                return null;
-            }
-
-            try {
-                showLoading('Loading from cloud...');
-                
-                // Placeholder fetch call for Google Apps Script
-                const response = await fetch(`${GOOGLE_SHEETS_CONFIG.scriptUrl}?action=getData`);
-                
-                if (response.ok) {
-                    const cloudData = await response.json();
-                    hideLoading();
-                    return cloudData;
-                } else {
-                    throw new Error('Failed to load from Google Sheets');
-                }
-            } catch (error) {
-                console.error('Error loading from Google Sheets:', error);
-                const localData = localStorage.getItem('rangdhanuCharityData');
-                hideLoading();
-                if (localData) {
-                    showSyncStatus('Using local data (cloud unavailable)', 'error');
-                    return JSON.parse(localData);
-                }
-                return null;
-            }
-        }
+				const result = await response.json();
+				console.log('Save response:', result);
+				
+				if (result.success) {
+					showSyncStatus('✅ Data saved to cloud successfully!', 'success');
+					localStorage.setItem('rangdhanuCharityData', JSON.stringify(appData));
+					hideLoading();
+					return true;
+				} else {
+					throw new Error(result.error || 'Unknown error from server');
+				}
+			} catch (error) {
+				console.error('Error saving to Google Sheets:', error);
+				showSyncStatus('❌ Failed to save to cloud. Data saved locally.', 'error');
+				localStorage.setItem('rangdhanuCharityData', JSON.stringify(appData));
+				hideLoading();
+				return false;
+			}
+		}
 
         // ========== ACTIVITY LOGGING ==========
 
@@ -3323,4 +3297,3 @@
     </script>
 </body>
 </html>
-
