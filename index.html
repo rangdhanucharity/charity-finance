@@ -788,6 +788,34 @@
         .admin-logged-in .admin-only {
             display: inline-flex;
         }
+        
+        /* Auto-logout warning */
+        .logout-warning {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            z-index: 3000;
+            text-align: center;
+            max-width: 400px;
+            display: none;
+        }
+        
+        .logout-warning h3 {
+            color: #dc3545;
+            margin-bottom: 15px;
+        }
+        
+        .logout-countdown {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #dc3545;
+            margin: 15px 0;
+        }
     </style>
 </head>
 <body>
@@ -799,6 +827,14 @@
     </div>
 
     <div class="sync-status" id="syncStatus" style="display: none;"></div>
+    
+    <div class="logout-warning" id="logoutWarning">
+        <h3>Session Timeout Warning</h3>
+        <p>You will be logged out due to inactivity in:</p>
+        <div class="logout-countdown" id="logoutCountdown">5:00</div>
+        <p>Move your mouse or press any key to continue your session.</p>
+        <button class="btn btn-primary" onclick="continueSession()">Continue Session</button>
+    </div>
 
     <div class="container">
         <div class="header">
@@ -1245,16 +1281,15 @@
     
     <script>
         // Firebase Configuration - ACTUAL CONFIG
-		// For Firebase JS SDK v7.20.0 and later, measurementId is optional
-		const firebaseConfig = {
-		  apiKey: "AIzaSyDChxV-zUTEMK_Oe1xJVn123c8l7fonhDk",
-		  authDomain: "rangdhanu-1bdec.firebaseapp.com",
-		  projectId: "rangdhanu-1bdec",
-		  storageBucket: "rangdhanu-1bdec.firebasestorage.app",
-		  messagingSenderId: "842682768144",
-		  appId: "1:842682768144:web:ba7cdfbab05e0b7bd52395",
-		  measurementId: "G-P3YGK1TF48"
-		};
+        const firebaseConfig = {
+          apiKey: "AIzaSyDChxV-zUTEMK_Oe1xJVn123c8l7fonhDk",
+          authDomain: "rangdhanu-1bdec.firebaseapp.com",
+          projectId: "rangdhanu-1bdec",
+          storageBucket: "rangdhanu-1bdec.firebasestorage.app",
+          messagingSenderId: "842682768144",
+          appId: "1:842682768144:web:ba7cdfbab05e0b7bd52395",
+          measurementId: "G-P3YGK1TF48"
+        };
 
         // Initialize Firebase
         firebase.initializeApp(firebaseConfig);
@@ -1287,6 +1322,70 @@
 
         let monthlyChart, contributorsChart, financeChart;
         let isOnline = navigator.onLine;
+        
+        // Auto-logout variables
+        let inactivityTimer;
+        let logoutWarningTimer;
+        let logoutCountdown = 300; // 5 minutes in seconds
+        let logoutCountdownInterval;
+
+        // ========== AUTO-LOGOUT FUNCTIONALITY ==========
+
+        function resetInactivityTimer() {
+            // Clear existing timers
+            clearTimeout(inactivityTimer);
+            clearTimeout(logoutWarningTimer);
+            clearInterval(logoutCountdownInterval);
+            
+            // Hide warning if visible
+            document.getElementById('logoutWarning').style.display = 'none';
+            
+            // Only set timers if admin is logged in
+            if (appData.settings.isAuthenticated) {
+                // Set warning timer (4 minutes)
+                logoutWarningTimer = setTimeout(showLogoutWarning, 4 * 60 * 1000);
+                
+                // Set logout timer (5 minutes)
+                inactivityTimer = setTimeout(logout, 5 * 60 * 1000);
+            }
+        }
+
+        function showLogoutWarning() {
+            // Show warning modal
+            document.getElementById('logoutWarning').style.display = 'block';
+            
+            // Start countdown
+            logoutCountdown = 60; // 1 minute countdown
+            document.getElementById('logoutCountdown').textContent = formatTime(logoutCountdown);
+            
+            logoutCountdownInterval = setInterval(function() {
+                logoutCountdown--;
+                document.getElementById('logoutCountdown').textContent = formatTime(logoutCountdown);
+                
+                if (logoutCountdown <= 0) {
+                    clearInterval(logoutCountdownInterval);
+                    logout();
+                }
+            }, 1000);
+        }
+
+        function formatTime(seconds) {
+            const minutes = Math.floor(seconds / 60);
+            const remainingSeconds = seconds % 60;
+            return `${minutes}:${remainingSeconds < 10 ? '0' : ''}${remainingSeconds}`;
+        }
+
+        function continueSession() {
+            resetInactivityTimer();
+        }
+
+        // Set up activity listeners
+        function setupActivityListeners() {
+            document.addEventListener('mousemove', resetInactivityTimer);
+            document.addEventListener('keypress', resetInactivityTimer);
+            document.addEventListener('click', resetInactivityTimer);
+            document.addEventListener('scroll', resetInactivityTimer);
+        }
 
         // ========== FIREBASE DATA MANAGEMENT ==========
 
@@ -1396,12 +1495,17 @@
                     });
                 }
 
-                // Process activity logs
+                // Process activity logs - limit to 100 entries
                 appData.activityLogs = [];
                 if (!logsSnapshot.empty) {
                     logsSnapshot.forEach(doc => {
                         appData.activityLogs.push(doc.data());
                     });
+                    
+                    // Keep only the latest 100 logs
+                    if (appData.activityLogs.length > 100) {
+                        appData.activityLogs = appData.activityLogs.slice(0, 100);
+                    }
                 }
             } catch (error) {
                 console.error('Error loading data:', error);
@@ -1514,9 +1618,9 @@
             // Add to in-memory array (unshift for newest first)
             appData.activityLogs.unshift(logEntry);
             
-            // Keep only last 1000 logs
-            if (appData.activityLogs.length > 1000) {
-                appData.activityLogs = appData.activityLogs.slice(0, 1000);
+            // Keep only last 100 logs
+            if (appData.activityLogs.length > 100) {
+                appData.activityLogs = appData.activityLogs.slice(0, 100);
             }
             
             // Save to Firebase
@@ -1534,7 +1638,7 @@
             }
         }
 
-        // ========== CUSTOM DIALOG MANAGEMENT (Functions remain unchanged) ==========
+        // ========== CUSTOM DIALOG MANAGEMENT ==========
 
         function hideCustomDialogModal() {
             document.getElementById('customDialogModal').style.display = 'none';
@@ -1581,7 +1685,7 @@
             modal.style.display = 'flex';
         }
 
-        // ========== NETWORK STATUS HANDLING (Functions remain unchanged) ==========
+        // ========== NETWORK STATUS HANDLING ==========
 
         function handleOnline() {
             isOnline = true;
@@ -1615,7 +1719,7 @@
             document.getElementById('loadingOverlay').style.display = 'none';
         }
 
-        // ========== AUTHENTICATION FUNCTIONS (Functions remain unchanged) ==========
+        // ========== AUTHENTICATION FUNCTIONS ==========
 
         function showLoginModal() {
             document.getElementById('loginModal').style.display = 'flex';
@@ -1644,6 +1748,9 @@
                 updateAdminControls();
                 renderYears();
                 
+                // Reset inactivity timer on login
+                resetInactivityTimer();
+                
                 logActivity('logged in', `Admin ${adminName} logged into the system`);
                 
                 showCustomAlert('✅ Admin access granted!', 'Success', 'success');
@@ -1660,6 +1767,12 @@
             updateAdminControls();
             renderYears();
             hideManageModal();
+            
+            // Clear inactivity timers
+            clearTimeout(inactivityTimer);
+            clearTimeout(logoutWarningTimer);
+            clearInterval(logoutCountdownInterval);
+            document.getElementById('logoutWarning').style.display = 'none';
             
             if (adminName) {
                 logActivity('logged out', `Admin ${adminName} logged out of the system`);
@@ -1696,14 +1809,14 @@
             return true;
         }
 
-        // ========== ADMIN CONTROLS MANAGEMENT (Functions remain unchanged) ==========
+        // ========== ADMIN CONTROLS MANAGEMENT ==========
 
         function updateAdminControls() {
             // Admin controls are now handled by CSS classes
             // The admin-only class is hidden by default and shown when logged in
         }
 
-        // ========== TAB MANAGEMENT (Functions remain unchanged) ==========
+        // ========== TAB MANAGEMENT ==========
 
         function switchTab(tabName) {
             document.querySelectorAll('.tab').forEach(tab => {
@@ -1722,7 +1835,7 @@
             if (tabName === 'logs') renderActivityLogs();
         }
 
-        // ========== CORE APPLICATION FUNCTIONS (Functions remain unchanged) ==========
+        // ========== CORE APPLICATION FUNCTIONS ==========
 
         function initializePayments() {
             appData.members.forEach(member => {
@@ -1738,7 +1851,7 @@
             });
         }
 
-        // ========== YEAR MANAGEMENT (Date Object handling fix) ==========
+        // ========== YEAR MANAGEMENT ==========
 
         function renderYears() {
             const container = document.getElementById('yearsContainer');
@@ -2051,7 +2164,7 @@
             document.getElementById('dateRange').textContent = `${firstMonth} - ${lastMonth}`;
         }
 
-        // ========== MEMBER MANAGEMENT (ID handling fix) ==========
+        // ========== MEMBER MANAGEMENT ==========
 
         function showAddMemberModal() {
             if (!requireAuth()) return;
@@ -2200,7 +2313,7 @@
             });
         }
 
-        // ========== PAYMENT MANAGEMENT (Functions remain unchanged) ==========
+        // ========== PAYMENT MANAGEMENT ==========
 
         async function updatePayment(memberId, year, monthIndex, value) {
             if (!appData.settings.isAuthenticated) {
@@ -2234,9 +2347,12 @@
                 logActivity('updated payment', 
                     `${appData.settings.currentAdmin} ${action} for ${member.name} (Year: ${year}, Amount: ৳${value || 0})`);
             }
+            
+            // Reset inactivity timer on any admin action
+            resetInactivityTimer();
         }
 
-        // ========== DONATION MANAGEMENT (ID assignment fix) ==========
+        // ========== DONATION MANAGEMENT ==========
 
         function showAddDonationModal() {
             if (!requireAuth()) return;
@@ -2279,6 +2395,9 @@
 
             hideDonationModal();
             showCustomAlert('✅ Donation successfully recorded!', 'Success', 'success');
+            
+            // Reset inactivity timer on any admin action
+            resetInactivityTimer();
         }
 
         function renderDonations() {
@@ -2332,11 +2451,14 @@
                         `${appData.settings.currentAdmin} deleted donation from ${deletedDonation.name} (Amount: ৳${deletedDonation.amount}, Date: ${deletedDonation.date})`);
                     
                     showCustomAlert('✅ Donation deleted successfully!', 'Success', 'success');
+                    
+                    // Reset inactivity timer on any admin action
+                    resetInactivityTimer();
                 }
             });
         }
 
-        // ========== EXPENSE MANAGEMENT (ID assignment fix) ==========
+        // ========== EXPENSE MANAGEMENT ==========
 
         function showAddExpenseModal() {
             if (!requireAuth()) return;
@@ -2384,6 +2506,9 @@
             
             hideAddExpenseModal();
             showCustomAlert('✅ Expense added successfully!', 'Success', 'success');
+            
+            // Reset inactivity timer on any admin action
+            resetInactivityTimer();
         }
 
         function renderExpenses() {
@@ -2435,11 +2560,14 @@
                         `${appData.settings.currentAdmin} deleted expense (Amount: ৳${expense.amount}, Category: ${expense.category}, Description: ${expense.description})`);
                     
                     showCustomAlert('✅ Expense deleted successfully!', 'Success', 'success');
+                    
+                    // Reset inactivity timer on any admin action
+                    resetInactivityTimer();
                 }
             });
         }
 
-        // ========== DASHBOARD FUNCTIONS (Functions remain unchanged) ==========
+        // ========== DASHBOARD FUNCTIONS ==========
 
         function updateDashboard() {
             const totalCollected = getTotalCollected();
@@ -2558,7 +2686,7 @@
             });
         }
 
-        // ========== FINANCE FUNCTIONS (Functions remain unchanged) ==========
+        // ========== FINANCE FUNCTIONS ==========
 
         function updateFinance() {
             const totalIncome = getTotalCollected() + getTotalDonations();
@@ -2645,7 +2773,7 @@
             return appData.expenses.reduce((sum, expense) => sum + expense.amount, 0);
         }
 
-        // ========== REPORTS FUNCTIONS (Functions remain unchanged) ==========
+        // ========== REPORTS FUNCTIONS ==========
 
         function updateReports() {
             const today = new Date();
@@ -2731,7 +2859,7 @@
             }
         }
 
-        // ========== ACTIVITY LOGS (Functions remain unchanged) ==========
+        // ========== ACTIVITY LOGS ==========
 
         function renderActivityLogs() {
             const logsContainer = document.getElementById('activityLogs');
@@ -2761,7 +2889,7 @@
             });
         }
 
-        // ========== EXPORT FUNCTIONALITY (Functions remain unchanged) ==========
+        // ========== EXPORT FUNCTIONALITY ==========
 
         function showExportModal() {
             document.getElementById('exportModal').style.display = 'flex';
@@ -3134,7 +3262,7 @@
             }
         }
 
-        // ========== SYSTEM MANAGEMENT (Includes Transactional Restore Fix) ==========
+        // ========== SYSTEM MANAGEMENT ==========
 
         function showManageModal() {
             if (!requireAuth()) return;
@@ -3322,7 +3450,7 @@
             });
         }
 
-        // ========== UTILITY FUNCTIONS (Functions remain unchanged) ==========
+        // ========== UTILITY FUNCTIONS ==========
 
         function getTotalCollected() {
             let total = 0;
@@ -3338,12 +3466,15 @@
             return appData.donations.reduce((sum, d) => sum + d.amount, 0);
         }
 
-        // ========== INITIALIZATION (Calls Fixed initializeFirebase) ==========
+        // ========== INITIALIZATION ==========
 
         async function initializeApp() {
             // Set up network listeners
             window.addEventListener('online', handleOnline);
             window.addEventListener('offline', handleOffline);
+            
+            // Set up activity listeners for auto-logout
+            setupActivityListeners();
             
             // Initialize Firebase and trigger all rendering AFTER data is loaded
             await initializeFirebase();
@@ -3352,9 +3483,8 @@
         // Initialize the application
         initializeApp();
 
-        // Auto-save settings every 30 seconds
-        setInterval(saveData, 30000);
+        // Remove the auto-save interval that saves every 30 seconds
+        // Data now saves only when admin makes changes
     </script>
 </body>
 </html>
-`
