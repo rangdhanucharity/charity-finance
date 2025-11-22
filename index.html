@@ -816,6 +816,107 @@
             color: #dc3545;
             margin: 15px 0;
         }
+        
+        /* Search and Sort Controls */
+        .search-sort-controls {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        
+        .search-box {
+            flex: 1;
+            min-width: 250px;
+            position: relative;
+        }
+        
+        .search-box input {
+            padding-left: 40px;
+        }
+        
+        .search-icon {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #6c757d;
+        }
+        
+        .sort-controls {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        
+        .sort-btn {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .sort-btn:hover {
+            background: #e9ecef;
+        }
+        
+        .sort-btn.active {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+        
+        /* Recycle Bin Styles */
+        .recycle-bin-btn {
+            background: #fd7e14;
+            color: white;
+        }
+        
+        .recycle-bin-item {
+            background: #fff3cd;
+            border-left: 4px solid #fd7e14;
+        }
+        
+        .restore-btn {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 3px;
+            cursor: pointer;
+            margin-left: 5px;
+            font-size: 0.8em;
+        }
+        
+        .permanent-delete-btn {
+            background: #dc3545;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 3px;
+            cursor: pointer;
+            margin-left: 5px;
+            font-size: 0.8em;
+        }
+        
+        .empty-bin-btn {
+            background: #6c757d;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 15px;
+        }
+        
+        .deleted-date {
+            font-size: 0.8em;
+            color: #6c757d;
+            margin-top: 5px;
+        }
     </style>
 </head>
 <body>
@@ -845,6 +946,7 @@
                 <button class="admin-btn" onclick="showLoginModal()" id="loginBtn">🔐 Admin Login</button>
                 <button class="admin-btn" onclick="showExportModal()">📤 Export Data</button>
                 <button class="admin-btn admin-only" id="manageBtn" onclick="showManageModal()">⚙️ Manage</button>
+                <button class="admin-btn admin-only recycle-bin-btn" onclick="showRecycleBinModal()">🗑️ Recycle Bin</button>
             </div>
         </div>
 
@@ -857,6 +959,18 @@
         </div>
 
         <div id="collection" class="tab-content active">
+            <div class="search-sort-controls">
+                <div class="search-box">
+                    <span class="search-icon">🔍</span>
+                    <input type="text" id="memberSearch" placeholder="Search members by name, phone, or email..." onkeyup="filterMembers()">
+                </div>
+                <div class="sort-controls">
+                    <span>Sort by:</span>
+                    <button class="sort-btn active" onclick="sortMembers('name')">Name (A-Z)</button>
+                    <button class="sort-btn" onclick="sortMembers('currentMonth')">Current Month Payment</button>
+                </div>
+            </div>
+            
             <div class="export-options">
                 <button class="add-member-btn admin-only" id="addMemberBtn" onclick="showAddMemberModal()">+ Add New Member</button>
                 <button class="add-member-btn admin-only" id="addYearBtn" onclick="showAddYearModal()">+ Add New Year</button>
@@ -939,6 +1053,18 @@
         </div>
 
         <div id="reports" class="tab-content">
+            <div class="search-sort-controls">
+                <div class="search-box">
+                    <span class="search-icon">🔍</span>
+                    <input type="text" id="reportSearch" placeholder="Search members by name, phone, or email..." onkeyup="filterReportMembers()">
+                </div>
+                <div class="sort-controls">
+                    <span>Sort by:</span>
+                    <button class="sort-btn active" onclick="sortReportMembers('name')">Name (A-Z)</button>
+                    <button class="sort-btn" onclick="sortReportMembers('contribution')">Contribution</button>
+                </div>
+            </div>
+            
             <div class="summary-grid">
                 <div class="summary-card clickable-header" onclick="toggleMemberList('paid')">
                     <h3>✅ Paid Members (Current Month)</h3>
@@ -1030,6 +1156,7 @@
         </div>
     </div>
 
+    <!-- Login Modal -->
     <div id="loginModal" class="modal">
         <div class="modal-content">
             <h3>🔐 Admin Login - Rangdhanu Charity Fund</h3>
@@ -1048,6 +1175,93 @@
         </div>
     </div>
 
+    <!-- Recycle Bin Modal -->
+    <div id="recycleBinModal" class="modal">
+        <div class="modal-content">
+            <h3>🗑️ Recycle Bin - Deleted Items</h3>
+            <p>Items in the recycle bin will be permanently deleted after 7 days.</p>
+            
+            <div class="tabs">
+                <button class="tab active" onclick="switchRecycleBinTab('members')">Members</button>
+                <button class="tab" onclick="switchRecycleBinTab('donations')">Donations</button>
+                <button class="tab" onclick="switchRecycleBinTab('expenses')">Expenses</button>
+                <button class="tab" onclick="switchRecycleBinTab('years')">Years</button>
+                <button class="tab" onclick="switchRecycleBinTab('months')">Months</button>
+            </div>
+            
+            <div id="recycleBinMembers" class="tab-content active">
+                <h4 style="margin: 15px 0 10px 0;">Deleted Members</h4>
+                <div id="recycleBinMembersList" class="member-list"></div>
+            </div>
+            
+            <div id="recycleBinDonations" class="tab-content">
+                <h4 style="margin: 15px 0 10px 0;">Deleted Donations</h4>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Donor Name</th>
+                                <th>Amount (৳)</th>
+                                <th>Note</th>
+                                <th>Deleted Date</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="recycleBinDonationsList"></tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <div id="recycleBinExpenses" class="tab-content">
+                <h4 style="margin: 15px 0 10px 0;">Deleted Expenses</h4>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Amount (৳)</th>
+                                <th>Category</th>
+                                <th>Description</th>
+                                <th>Deleted Date</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="recycleBinExpensesList"></tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <div id="recycleBinYears" class="tab-content">
+                <h4 style="margin: 15px 0 10px 0;">Deleted Years</h4>
+                <div id="recycleBinYearsList" class="member-list"></div>
+            </div>
+            
+            <div id="recycleBinMonths" class="tab-content">
+                <h4 style="margin: 15px 0 10px 0;">Deleted Months</h4>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Year</th>
+                                <th>Month</th>
+                                <th>Deleted Date</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="recycleBinMonthsList"></tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <div class="form-actions">
+                <button class="empty-bin-btn" onclick="emptyRecycleBin()">Empty Recycle Bin</button>
+                <button class="btn btn-secondary" onclick="hideRecycleBinModal()">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- All other modals remain the same -->
     <div id="addExpenseModal" class="modal">
         <div class="modal-content">
             <h3>➕ Add New Expense</h3>
@@ -1299,13 +1513,20 @@
         // Enhanced data structure with Firebase integration
         let appData = {
             organization: "Rangdhanu Charity Fund",
-            appVersion: "4.1",
+            appVersion: "4.2",
             years: {}, // Initialize as empty, will be loaded from Firebase
             members: [], // Initialize as empty, will be loaded from Firebase
             payments: {}, // Initialize as empty, will be loaded from Firebase
             donations: [], // Initialize as empty, will be loaded from Firebase
             expenses: [], // Initialize as empty, will be loaded from Firebase
             activityLogs: [],
+            recycleBin: {
+                members: [],
+                donations: [],
+                expenses: [],
+                years: [],
+                months: []
+            },
             settings: {
                 admins: {
                     "Ful Mia": "admin123",
@@ -1328,6 +1549,12 @@
         let logoutWarningTimer;
         let logoutCountdown = 300; // 5 minutes in seconds
         let logoutCountdownInterval;
+        
+        // Search and sort variables
+        let currentSort = 'name';
+        let currentReportSort = 'name';
+        let filteredMembers = [];
+        let filteredReportMembers = [];
 
         // ========== AUTO-LOGOUT FUNCTIONALITY ==========
 
@@ -1387,6 +1614,596 @@
             document.addEventListener('scroll', resetInactivityTimer);
         }
 
+        // ========== SEARCH AND SORT FUNCTIONALITY ==========
+
+        function filterMembers() {
+            const searchTerm = document.getElementById('memberSearch').value.toLowerCase();
+            filteredMembers = appData.members.filter(member => 
+                member.name.toLowerCase().includes(searchTerm) ||
+                member.phone.toLowerCase().includes(searchTerm) ||
+                member.email.toLowerCase().includes(searchTerm)
+            );
+            renderYears();
+        }
+
+        function sortMembers(sortType) {
+            currentSort = sortType;
+            
+            // Update active button
+            document.querySelectorAll('.sort-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            
+            if (sortType === 'name') {
+                appData.members.sort((a, b) => a.name.localeCompare(b.name));
+            } else if (sortType === 'currentMonth') {
+                // Sort by current month payment status (paid members first)
+                const today = new Date();
+                let currentYear, currentMonthIndex;
+                
+                // Find current month/year
+                Object.keys(appData.years).sort().forEach(year => {
+                    const yearData = appData.years[year];
+                    yearData.monthDates.forEach((monthDateString, index) => {
+                        const monthDate = new Date(monthDateString);
+                        const nextMonth = new Date(monthDate.getFullYear(), monthDate.getMonth() + 1, 1);
+                        
+                        if (today >= monthDate && today < nextMonth) {
+                            currentYear = year;
+                            currentMonthIndex = index;
+                        }
+                    });
+                });
+                
+                appData.members.sort((a, b) => {
+                    const aPayment = parseFloat(appData.payments[a.id]?.[currentYear]?.[currentMonthIndex]) || 0;
+                    const bPayment = parseFloat(appData.payments[b.id]?.[currentYear]?.[currentMonthIndex]) || 0;
+                    return bPayment - aPayment; // Paid members first
+                });
+            }
+            
+            renderYears();
+        }
+
+        function filterReportMembers() {
+            const searchTerm = document.getElementById('reportSearch').value.toLowerCase();
+            filteredReportMembers = appData.members.filter(member => 
+                member.name.toLowerCase().includes(searchTerm) ||
+                member.phone.toLowerCase().includes(searchTerm) ||
+                member.email.toLowerCase().includes(searchTerm)
+            );
+            updateReports();
+        }
+
+        function sortReportMembers(sortType) {
+            currentReportSort = sortType;
+            
+            // Update active button
+            const buttons = document.querySelectorAll('#reports .sort-btn');
+            buttons.forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            
+            if (sortType === 'name') {
+                appData.members.sort((a, b) => a.name.localeCompare(b.name));
+            } else if (sortType === 'contribution') {
+                appData.members.sort((a, b) => {
+                    const totalA = Object.keys(appData.years).reduce((sum, year) => 
+                        sum + (appData.payments[a.id]?.[year] || []).reduce((s, v) => s + (parseFloat(v) || 0), 0), 0);
+                    const totalB = Object.keys(appData.years).reduce((sum, year) => 
+                        sum + (appData.payments[b.id]?.[year] || []).reduce((s, v) => s + (parseFloat(v) || 0), 0), 0);
+                    return totalB - totalA;
+                });
+            }
+            
+            updateReports();
+        }
+
+        // ========== RECYCLE BIN FUNCTIONALITY ==========
+
+        function showRecycleBinModal() {
+            if (!requireAuth()) return;
+            document.getElementById('recycleBinModal').style.display = 'flex';
+            renderRecycleBin();
+        }
+
+        function hideRecycleBinModal() {
+            document.getElementById('recycleBinModal').style.display = 'none';
+        }
+
+        function switchRecycleBinTab(tabName) {
+            document.querySelectorAll('#recycleBinModal .tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            document.querySelectorAll('#recycleBinModal .tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            
+            event.target.classList.add('active');
+            document.getElementById('recycleBin' + tabName.charAt(0).toUpperCase() + tabName.slice(1)).classList.add('active');
+        }
+
+        async function renderRecycleBin() {
+            // Clean up expired items (older than 7 days)
+            const sevenDaysAgo = new Date();
+            sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+            
+            appData.recycleBin.members = appData.recycleBin.members.filter(item => 
+                new Date(item.deletedDate) > sevenDaysAgo
+            );
+            appData.recycleBin.donations = appData.recycleBin.donations.filter(item => 
+                new Date(item.deletedDate) > sevenDaysAgo
+            );
+            appData.recycleBin.expenses = appData.recycleBin.expenses.filter(item => 
+                new Date(item.deletedDate) > sevenDaysAgo
+            );
+            appData.recycleBin.years = appData.recycleBin.years.filter(item => 
+                new Date(item.deletedDate) > sevenDaysAgo
+            );
+            appData.recycleBin.months = appData.recycleBin.months.filter(item => 
+                new Date(item.deletedDate) > sevenDaysAgo
+            );
+            
+            // Save cleaned recycle bin
+            await saveRecycleBin();
+            
+            // Render members
+            const membersList = document.getElementById('recycleBinMembersList');
+            membersList.innerHTML = '';
+            
+            if (appData.recycleBin.members.length === 0) {
+                membersList.innerHTML = '<div class="member-item">No deleted members in recycle bin</div>';
+            } else {
+                appData.recycleBin.members.forEach(member => {
+                    const div = document.createElement('div');
+                    div.className = 'member-item recycle-bin-item';
+                    div.innerHTML = `
+                        <div>
+                            <strong>${member.name}</strong>
+                            <div class="deleted-date">Deleted on: ${new Date(member.deletedDate).toLocaleDateString()}</div>
+                        </div>
+                        <div>
+                            <button class="restore-btn" onclick="restoreMember('${member.id}')">Restore</button>
+                            <button class="permanent-delete-btn" onclick="permanentDeleteMember('${member.id}')">Delete Permanently</button>
+                        </div>
+                    `;
+                    membersList.appendChild(div);
+                });
+            }
+            
+            // Render donations
+            const donationsList = document.getElementById('recycleBinDonationsList');
+            donationsList.innerHTML = '';
+            
+            if (appData.recycleBin.donations.length === 0) {
+                donationsList.innerHTML = '<tr><td colspan="6" style="text-align: center;">No deleted donations in recycle bin</td></tr>';
+            } else {
+                appData.recycleBin.donations.forEach(donation => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${donation.date}</td>
+                        <td>${donation.name}</td>
+                        <td><span class="taka-symbol">৳</span>${donation.amount.toFixed(2)}</td>
+                        <td>${donation.note}</td>
+                        <td>${new Date(donation.deletedDate).toLocaleDateString()}</td>
+                        <td>
+                            <button class="restore-btn" onclick="restoreDonation('${donation.id}')">Restore</button>
+                            <button class="permanent-delete-btn" onclick="permanentDeleteDonation('${donation.id}')">Delete Permanently</button>
+                        </td>
+                    `;
+                    donationsList.appendChild(row);
+                });
+            }
+            
+            // Render expenses
+            const expensesList = document.getElementById('recycleBinExpensesList');
+            expensesList.innerHTML = '';
+            
+            if (appData.recycleBin.expenses.length === 0) {
+                expensesList.innerHTML = '<tr><td colspan="6" style="text-align: center;">No deleted expenses in recycle bin</td></tr>';
+            } else {
+                appData.recycleBin.expenses.forEach(expense => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${expense.date}</td>
+                        <td><span class="taka-symbol">৳</span>${expense.amount.toFixed(2)}</td>
+                        <td>${expense.category}</td>
+                        <td>${expense.description}</td>
+                        <td>${new Date(expense.deletedDate).toLocaleDateString()}</td>
+                        <td>
+                            <button class="restore-btn" onclick="restoreExpense('${expense.id}')">Restore</button>
+                            <button class="permanent-delete-btn" onclick="permanentDeleteExpense('${expense.id}')">Delete Permanently</button>
+                        </td>
+                    `;
+                    expensesList.appendChild(row);
+                });
+            }
+            
+            // Render years
+            const yearsList = document.getElementById('recycleBinYearsList');
+            yearsList.innerHTML = '';
+            
+            if (appData.recycleBin.years.length === 0) {
+                yearsList.innerHTML = '<div class="member-item">No deleted years in recycle bin</div>';
+            } else {
+                appData.recycleBin.years.forEach(year => {
+                    const div = document.createElement('div');
+                    div.className = 'member-item recycle-bin-item';
+                    div.innerHTML = `
+                        <div>
+                            <strong>${year.year}</strong>
+                            <div class="deleted-date">Deleted on: ${new Date(year.deletedDate).toLocaleDateString()}</div>
+                        </div>
+                        <div>
+                            <button class="restore-btn" onclick="restoreYear('${year.year}')">Restore</button>
+                            <button class="permanent-delete-btn" onclick="permanentDeleteYear('${year.year}')">Delete Permanently</button>
+                        </div>
+                    `;
+                    yearsList.appendChild(div);
+                });
+            }
+            
+            // Render months
+            const monthsList = document.getElementById('recycleBinMonthsList');
+            monthsList.innerHTML = '';
+            
+            if (appData.recycleBin.months.length === 0) {
+                monthsList.innerHTML = '<tr><td colspan="4" style="text-align: center;">No deleted months in recycle bin</td></tr>';
+            } else {
+                appData.recycleBin.months.forEach(month => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${month.year}</td>
+                        <td>${month.monthName}</td>
+                        <td>${new Date(month.deletedDate).toLocaleDateString()}</td>
+                        <td>
+                            <button class="restore-btn" onclick="restoreMonth('${month.year}', ${month.monthIndex})">Restore</button>
+                            <button class="permanent-delete-btn" onclick="permanentDeleteMonth('${month.year}', ${month.monthIndex})">Delete Permanently</button>
+                        </td>
+                    `;
+                    monthsList.appendChild(row);
+                });
+            }
+        }
+
+        async function moveToRecycleBin(type, item) {
+            item.deletedDate = new Date().toISOString();
+            appData.recycleBin[type].push(item);
+            await saveRecycleBin();
+        }
+
+        async function saveRecycleBin() {
+            if (!isOnline) return;
+            try {
+                await db.collection('settings').doc('recycleBin').set(appData.recycleBin, { merge: true });
+            } catch (error) {
+                console.error('Error saving recycle bin:', error);
+            }
+        }
+
+        async function restoreMember(memberId) {
+            const memberIndex = appData.recycleBin.members.findIndex(m => m.id === memberId);
+            if (memberIndex === -1) return;
+            
+            const member = appData.recycleBin.members[memberIndex];
+            
+            // Restore member
+            appData.members.push({
+                id: member.id,
+                name: member.name,
+                phone: member.phone,
+                email: member.email,
+                joinDate: member.joinDate
+            });
+            
+            // Restore payments if they exist
+            if (member.payments) {
+                appData.payments[member.id] = member.payments;
+            }
+            
+            // Remove from recycle bin
+            appData.recycleBin.members.splice(memberIndex, 1);
+            
+            // Save data
+            await saveMember(member);
+            await saveRecycleBin();
+            
+            // Re-render
+            renderYears();
+            renderRecycleBin();
+            
+            logActivity('restored member from recycle bin', `Restored member: ${member.name}`);
+            showCustomAlert('✅ Member restored successfully!', 'Success', 'success');
+        }
+
+        async function restoreDonation(donationId) {
+            const donationIndex = appData.recycleBin.donations.findIndex(d => d.id === donationId);
+            if (donationIndex === -1) return;
+            
+            const donation = appData.recycleBin.donations[donationIndex];
+            
+            // Restore donation
+            appData.donations.push({
+                id: donation.id,
+                date: donation.date,
+                name: donation.name,
+                amount: donation.amount,
+                note: donation.note
+            });
+            
+            // Remove from recycle bin
+            appData.recycleBin.donations.splice(donationIndex, 1);
+            
+            // Save data
+            await saveDonation(donation);
+            await saveRecycleBin();
+            
+            // Re-render
+            renderDonations();
+            updateDashboard();
+            updateFinance();
+            renderRecycleBin();
+            
+            logActivity('restored donation from recycle bin', `Restored donation from ${donation.name} (Amount: ৳${donation.amount})`);
+            showCustomAlert('✅ Donation restored successfully!', 'Success', 'success');
+        }
+
+        async function restoreExpense(expenseId) {
+            const expenseIndex = appData.recycleBin.expenses.findIndex(e => e.id === expenseId);
+            if (expenseIndex === -1) return;
+            
+            const expense = appData.recycleBin.expenses[expenseIndex];
+            
+            // Restore expense
+            appData.expenses.push({
+                id: expense.id,
+                date: expense.date,
+                amount: expense.amount,
+                category: expense.category,
+                description: expense.description,
+                addedBy: expense.addedBy,
+                addedOn: expense.addedOn
+            });
+            
+            // Remove from recycle bin
+            appData.recycleBin.expenses.splice(expenseIndex, 1);
+            
+            // Save data
+            await saveExpense(expense);
+            await saveRecycleBin();
+            
+            // Re-render
+            renderExpenses();
+            updateFinance();
+            renderRecycleBin();
+            
+            logActivity('restored expense from recycle bin', `Restored expense (Amount: ৳${expense.amount}, Category: ${expense.category})`);
+            showCustomAlert('✅ Expense restored successfully!', 'Success', 'success');
+        }
+
+        async function restoreYear(year) {
+            const yearIndex = appData.recycleBin.years.findIndex(y => y.year === year);
+            if (yearIndex === -1) return;
+            
+            const yearData = appData.recycleBin.years[yearIndex];
+            
+            // Restore year
+            appData.years[year] = {
+                months: yearData.months,
+                monthDates: yearData.monthDates
+            };
+            
+            // Restore payments for all members
+            appData.members.forEach(member => {
+                if (!appData.payments[member.id]) {
+                    appData.payments[member.id] = {};
+                }
+                appData.payments[member.id][year] = yearData.payments[member.id] || Array(yearData.months.length).fill(null);
+            });
+            
+            // Remove from recycle bin
+            appData.recycleBin.years.splice(yearIndex, 1);
+            
+            // Save year data
+            await saveYear(year, appData.years[year]);
+            
+            // Save payments for all members
+            for (const member of appData.members) {
+                await savePayment(member.id, year, appData.payments[member.id][year]);
+            }
+            
+            // Re-render
+            renderYears();
+            renderRecycleBin();
+            
+            logActivity('restored year from recycle bin', `Restored year: ${year}`);
+            showCustomAlert('✅ Year restored successfully!', 'Success', 'success');
+        }
+
+        async function restoreMonth(year, monthIndex) {
+            const monthIndexInBin = appData.recycleBin.months.findIndex(m => 
+                m.year === year && m.monthIndex === parseInt(monthIndex)
+            );
+            if (monthIndexInBin === -1) return;
+            
+            const monthData = appData.recycleBin.months[monthIndexInBin];
+            
+            // Restore month
+            appData.years[year].months.splice(monthIndex, 0, monthData.monthName);
+            appData.years[year].monthDates.splice(monthIndex, 0, monthData.monthDate);
+            
+            // Restore payments for all members
+            appData.members.forEach(member => {
+                if (!appData.payments[member.id]) {
+                    appData.payments[member.id] = {};
+                }
+                if (!appData.payments[member.id][year]) {
+                    appData.payments[member.id][year] = Array(appData.years[year].months.length).fill(null);
+                }
+                appData.payments[member.id][year].splice(monthIndex, 0, monthData.payments[member.id]);
+            });
+            
+            // Remove from recycle bin
+            appData.recycleBin.months.splice(monthIndexInBin, 1);
+            
+            // Save year data
+            await saveYear(year, appData.years[year]);
+            
+            // Save payments for all members
+            for (const member of appData.members) {
+                await savePayment(member.id, year, appData.payments[member.id][year]);
+            }
+            
+            // Re-render
+            renderYears();
+            renderRecycleBin();
+            
+            logActivity('restored month from recycle bin', `Restored month: ${monthData.monthName} from year ${year}`);
+            showCustomAlert('✅ Month restored successfully!', 'Success', 'success');
+        }
+
+        async function permanentDeleteMember(memberId) {
+            showCustomConfirm('Are you sure you want to permanently delete this member? This action cannot be undone!', 'Confirm Permanent Deletion', 'danger', async (confirmed) => {
+                if (confirmed) {
+                    const memberIndex = appData.recycleBin.members.findIndex(m => m.id === memberId);
+                    if (memberIndex === -1) return;
+                    
+                    const member = appData.recycleBin.members[memberIndex];
+                    
+                    // Remove from recycle bin
+                    appData.recycleBin.members.splice(memberIndex, 1);
+                    
+                    // Save recycle bin
+                    await saveRecycleBin();
+                    
+                    // Re-render
+                    renderRecycleBin();
+                    
+                    logActivity('permanently deleted member', `Permanently deleted member: ${member.name}`);
+                    showCustomAlert('✅ Member permanently deleted!', 'Success', 'success');
+                }
+            });
+        }
+
+        async function permanentDeleteDonation(donationId) {
+            showCustomConfirm('Are you sure you want to permanently delete this donation? This action cannot be undone!', 'Confirm Permanent Deletion', 'danger', async (confirmed) => {
+                if (confirmed) {
+                    const donationIndex = appData.recycleBin.donations.findIndex(d => d.id === donationId);
+                    if (donationIndex === -1) return;
+                    
+                    const donation = appData.recycleBin.donations[donationIndex];
+                    
+                    // Remove from recycle bin
+                    appData.recycleBin.donations.splice(donationIndex, 1);
+                    
+                    // Save recycle bin
+                    await saveRecycleBin();
+                    
+                    // Re-render
+                    renderRecycleBin();
+                    
+                    logActivity('permanently deleted donation', `Permanently deleted donation from ${donation.name} (Amount: ৳${donation.amount})`);
+                    showCustomAlert('✅ Donation permanently deleted!', 'Success', 'success');
+                }
+            });
+        }
+
+        async function permanentDeleteExpense(expenseId) {
+            showCustomConfirm('Are you sure you want to permanently delete this expense? This action cannot be undone!', 'Confirm Permanent Deletion', 'danger', async (confirmed) => {
+                if (confirmed) {
+                    const expenseIndex = appData.recycleBin.expenses.findIndex(e => e.id === expenseId);
+                    if (expenseIndex === -1) return;
+                    
+                    const expense = appData.recycleBin.expenses[expenseIndex];
+                    
+                    // Remove from recycle bin
+                    appData.recycleBin.expenses.splice(expenseIndex, 1);
+                    
+                    // Save recycle bin
+                    await saveRecycleBin();
+                    
+                    // Re-render
+                    renderRecycleBin();
+                    
+                    logActivity('permanently deleted expense', `Permanently deleted expense (Amount: ৳${expense.amount}, Category: ${expense.category})`);
+                    showCustomAlert('✅ Expense permanently deleted!', 'Success', 'success');
+                }
+            });
+        }
+
+        async function permanentDeleteYear(year) {
+            showCustomConfirm('Are you sure you want to permanently delete this year? This action cannot be undone!', 'Confirm Permanent Deletion', 'danger', async (confirmed) => {
+                if (confirmed) {
+                    const yearIndex = appData.recycleBin.years.findIndex(y => y.year === year);
+                    if (yearIndex === -1) return;
+                    
+                    const yearData = appData.recycleBin.years[yearIndex];
+                    
+                    // Remove from recycle bin
+                    appData.recycleBin.years.splice(yearIndex, 1);
+                    
+                    // Save recycle bin
+                    await saveRecycleBin();
+                    
+                    // Re-render
+                    renderRecycleBin();
+                    
+                    logActivity('permanently deleted year', `Permanently deleted year: ${year}`);
+                    showCustomAlert('✅ Year permanently deleted!', 'Success', 'success');
+                }
+            });
+        }
+
+        async function permanentDeleteMonth(year, monthIndex) {
+            showCustomConfirm('Are you sure you want to permanently delete this month? This action cannot be undone!', 'Confirm Permanent Deletion', 'danger', async (confirmed) => {
+                if (confirmed) {
+                    const monthIndexInBin = appData.recycleBin.months.findIndex(m => 
+                        m.year === year && m.monthIndex === parseInt(monthIndex)
+                    );
+                    if (monthIndexInBin === -1) return;
+                    
+                    const monthData = appData.recycleBin.months[monthIndexInBin];
+                    
+                    // Remove from recycle bin
+                    appData.recycleBin.months.splice(monthIndexInBin, 1);
+                    
+                    // Save recycle bin
+                    await saveRecycleBin();
+                    
+                    // Re-render
+                    renderRecycleBin();
+                    
+                    logActivity('permanently deleted month', `Permanently deleted month: ${monthData.monthName} from year ${year}`);
+                    showCustomAlert('✅ Month permanently deleted!', 'Success', 'success');
+                }
+            });
+        }
+
+        async function emptyRecycleBin() {
+            showCustomConfirm('Are you sure you want to empty the entire recycle bin? This will permanently delete all items and cannot be undone!', 'Confirm Empty Recycle Bin', 'danger', async (confirmed) => {
+                if (confirmed) {
+                    appData.recycleBin = {
+                        members: [],
+                        donations: [],
+                        expenses: [],
+                        years: [],
+                        months: []
+                    };
+                    
+                    // Save empty recycle bin
+                    await saveRecycleBin();
+                    
+                    // Re-render
+                    renderRecycleBin();
+                    
+                    logActivity('emptied recycle bin', 'Emptied the entire recycle bin');
+                    showCustomAlert('✅ Recycle bin emptied successfully!', 'Success', 'success');
+                }
+            });
+        }
+
         // ========== FIREBASE DATA MANAGEMENT ==========
 
         async function initializeFirebase() {
@@ -1397,6 +2214,12 @@
                 if (settingsDoc.exists) {
                     const settingsData = settingsDoc.data();
                     appData.settings = { ...appData.settings, ...settingsData };
+                }
+
+                // Load recycle bin
+                const recycleBinDoc = await db.collection('settings').doc('recycleBin').get();
+                if (recycleBinDoc.exists) {
+                    appData.recycleBin = recycleBinDoc.data();
                 }
 
                 // Load all other data
@@ -1857,6 +2680,9 @@
             const container = document.getElementById('yearsContainer');
             container.innerHTML = '';
             
+            // Use filtered members if search is active, otherwise use all members
+            const membersToRender = filteredMembers.length > 0 ? filteredMembers : appData.members;
+            
             Object.keys(appData.years).sort().forEach(year => {
                 const yearData = appData.years[year];
                 const yearSection = document.createElement('div');
@@ -1889,13 +2715,13 @@
                     </div>
                 `;
                 container.appendChild(yearSection);
-                renderYearTable(year);
+                renderYearTable(year, membersToRender);
             });
             
             updateDateRange();
         }
 
-        function renderYearTable(year) {
+        function renderYearTable(year, membersToRender) {
             const headerRow = document.getElementById(`header-${year}`);
             const tableBody = document.getElementById(`body-${year}`);
             const totalRow = document.getElementById(`total-${year}`);
@@ -1914,7 +2740,7 @@
             headerRow.innerHTML += '<th>Total</th>';
 
             tableBody.innerHTML = '';
-            appData.members.forEach(member => {
+            membersToRender.forEach(member => {
                 const row = document.createElement('tr');
                 row.innerHTML = `<td><strong>${member.name}</strong></td>`;
                 
@@ -1936,12 +2762,12 @@
 
             totalRow.innerHTML = '<td>Monthly Total</td>';
             yearData.months.forEach((month, mIdx) => {
-                const monthTotal = appData.members.reduce((sum, member) => 
+                const monthTotal = membersToRender.reduce((sum, member) => 
                     sum + (parseFloat(appData.payments[member.id]?.[year]?.[mIdx]) || 0), 0);
                 totalRow.innerHTML += `<td><span class="taka-symbol">৳</span>${monthTotal.toFixed(2)}</td>`;
             });
 
-            const grandTotal = appData.members.reduce((sum, member) => 
+            const grandTotal = membersToRender.reduce((sum, member) => 
                 sum + (appData.payments[member.id]?.[year] || []).reduce((s, v) => s + (parseFloat(v) || 0), 0), 0);
             totalRow.innerHTML += `<td><span class="taka-symbol">৳</span>${grandTotal.toFixed(2)}</td>`;
         }
@@ -2074,6 +2900,24 @@
 
             showCustomConfirm(message, 'Confirm Deletion', 'danger', async (confirmed) => {
                 if (confirmed) {
+                    // Move to recycle bin first
+                    const yearToDelete = {
+                        year: year,
+                        months: appData.years[year].months,
+                        monthDates: appData.years[year].monthDates,
+                        payments: {}
+                    };
+                    
+                    // Save payments for all members for this year
+                    appData.members.forEach(member => {
+                        if (appData.payments[member.id]?.[year]) {
+                            yearToDelete.payments[member.id] = appData.payments[member.id][year];
+                        }
+                    });
+                    
+                    await moveToRecycleBin('years', yearToDelete);
+                    
+                    // Then delete from main data
                     delete appData.years[year];
                     
                     appData.members.forEach(member => {
@@ -2112,6 +2956,25 @@
             
             showCustomConfirm(`Are you sure you want to delete ${monthName}?`, 'Confirm Deletion', 'danger', async (confirmed) => {
                 if (confirmed) {
+                    // Move to recycle bin first
+                    const monthToDelete = {
+                        year: year,
+                        monthIndex: monthIndex,
+                        monthName: monthName,
+                        monthDate: appData.years[year].monthDates[monthIndex],
+                        payments: {}
+                    };
+                    
+                    // Save payments for all members for this month
+                    appData.members.forEach(member => {
+                        if (appData.payments[member.id]?.[year]) {
+                            monthToDelete.payments[member.id] = appData.payments[member.id][year][monthIndex];
+                        }
+                    });
+                    
+                    await moveToRecycleBin('months', monthToDelete);
+                    
+                    // Then delete from main data
                     appData.years[year].months.splice(monthIndex, 1);
                     appData.years[year].monthDates.splice(monthIndex, 1);
                     
@@ -2290,6 +3153,19 @@
             
             showCustomConfirm(`Are you sure you want to delete member ${member.name}? This will also delete all their payment records!`, 'Confirm Deletion', 'danger', async (confirmed) => {
                 if (confirmed) {
+                    // Move to recycle bin first
+                    const memberToDelete = {
+                        id: member.id,
+                        name: member.name,
+                        phone: member.phone,
+                        email: member.email,
+                        joinDate: member.joinDate,
+                        payments: appData.payments[member.id] || {}
+                    };
+                    
+                    await moveToRecycleBin('members', memberToDelete);
+                    
+                    // Then delete from main data
                     appData.members = appData.members.filter(m => m.id !== memberId);
                     delete appData.payments[memberId];
                     
@@ -2432,6 +3308,10 @@
 
             showCustomConfirm(`Are you sure you want to delete the donation from ${donation.name} for ৳${donation.amount.toFixed(2)}?`, 'Confirm Deletion', 'danger', async (confirmed) => {
                 if (confirmed) {
+                    // Move to recycle bin first
+                    await moveToRecycleBin('donations', donation);
+                    
+                    // Then delete from main data
                     const deletedDonation = appData.donations.splice(indexToDelete, 1)[0];
                     
                     // Delete from Firebase using the document ID
@@ -2542,6 +3422,10 @@
 
             showCustomConfirm(`Are you sure you want to delete the expense of ৳${expense.amount.toFixed(2)} (${expense.category})?`, 'Confirm Deletion', 'danger', async (confirmed) => {
                 if (confirmed) {
+                    // Move to recycle bin first
+                    await moveToRecycleBin('expenses', expense);
+                    
+                    // Then delete from main data
                     const deletedExpense = appData.expenses.splice(indexToDelete, 1)[0];
                     
                     // Delete from Firebase using the document ID
@@ -2787,9 +3671,12 @@
                     const nextMonth = new Date(monthDate.getFullYear(), monthDate.getMonth() + 1, 1);
 
                     if (today >= monthDate && today < nextMonth) {
-                        currentPaidMembers = appData.members.filter(member => 
+                        // Use filtered members if search is active, otherwise use all members
+                        const membersToCheck = filteredReportMembers.length > 0 ? filteredReportMembers : appData.members;
+                        
+                        currentPaidMembers = membersToCheck.filter(member => 
                             parseFloat(appData.payments[member.id]?.[year]?.[index]) > 0);
-                        currentDueMembers = appData.members.filter(member => 
+                        currentDueMembers = membersToCheck.filter(member => 
                             !parseFloat(appData.payments[member.id]?.[year]?.[index]) > 0);
                     }
                 });
@@ -2821,7 +3708,10 @@
             const contributionSummary = document.getElementById('contributionSummary');
             contributionSummary.innerHTML = '';
             
-            appData.members.forEach(member => {
+            // Use filtered members if search is active, otherwise use all members
+            const membersToShow = filteredReportMembers.length > 0 ? filteredReportMembers : appData.members;
+            
+            membersToShow.forEach(member => {
                 const total = Object.keys(appData.years).reduce((sum, year) => 
                     sum + (appData.payments[member.id]?.[year] || []).reduce((s, v) => s + (parseFloat(v) || 0), 0), 0);
                 
@@ -3303,7 +4193,8 @@
                     payments: appData.payments,
                     donations: appData.donations,
                     expenses: appData.expenses,
-                    settings: appData.settings
+                    settings: appData.settings,
+                    recycleBin: appData.recycleBin
                 };
 
                 const backupData = {
@@ -3378,6 +4269,13 @@
                         appData.donations = backupData.donations;
                         appData.expenses = backupData.expenses;
                         appData.settings = { ...appData.settings, ...backupData.settings };
+                        appData.recycleBin = backupData.recycleBin || {
+                            members: [],
+                            donations: [],
+                            expenses: [],
+                            years: [],
+                            months: []
+                        };
                         
                         // Overwrite main collections with restored data using batch writes
                         const batch = db.batch();
@@ -3424,6 +4322,9 @@
 
                         // 6. Settings (Merge to keep admin passwords safe if not in backup)
                         batch.set(db.collection('settings').doc('appSettings'), backupData.settings, { merge: true });
+                        
+                        // 7. Recycle Bin
+                        batch.set(db.collection('settings').doc('recycleBin'), appData.recycleBin, { merge: true });
                         
                         // Commit the entire batch
                         await batch.commit();
