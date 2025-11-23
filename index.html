@@ -1140,6 +1140,35 @@
 			color: white;
 			border-color: #667eea;
 		}
+
+		/* Center align only the payment amount cells */
+		.table-container td:not(:first-child):not(:last-child) {
+		    text-align: center;
+		    vertical-align: middle;
+		}
+		
+		/* Center align the payment inputs */
+		.table-container td:not(:first-child):not(:last-child) input[type="number"] {
+		    text-align: center;
+		    margin: 0 auto;
+		    display: block;
+		}
+		
+		/* Keep member names left-aligned */
+		.table-container td:first-child {
+		    text-align: left;
+		}
+		
+		/* Keep totals right-aligned */
+		.table-container td:last-child {
+		    text-align: right;
+		}
+		
+		/* Center align month headers */
+		.table-container th:not(:first-child):not(:last-child) {
+		    text-align: center;
+		}		
+		
     </style>
 </head>
 <body>
@@ -4702,3 +4731,4 @@
     </script>
 </body>
 </html>
+
