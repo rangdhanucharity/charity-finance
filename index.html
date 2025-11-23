@@ -1281,7 +1281,16 @@
 		.summary-card.clickable-header small {
 		    color: inherit !important;
 		}
-		
+		/* Remove number input spinners */
+		input[type="number"] {
+			-moz-appearance: textfield;
+		}
+
+		input[type="number"]::-webkit-outer-spin-button,
+		input[type="number"]::-webkit-inner-spin-button {
+			-webkit-appearance: none;
+			margin: 0;
+		}	
 		
     </style>
 </head>
@@ -4870,4 +4879,5 @@
     <button class="theme-toggle" onclick="toggleTheme()" id="themeToggle">🌙</button>
 </body>
 </html>
+
 
