@@ -403,10 +403,10 @@
 		}		
 
         .chart-container {
-            background: white;
+            background: var(--bg-container);
             padding: 20px;
             border-radius: 10px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 10px var(--card-shadow);
             margin-bottom: 20px;
         }
 
@@ -4048,6 +4048,13 @@
                                 }
                             }
                         }
+                    },
+                    plugins: {
+                        legend: {
+                            labels: {
+                                color: document.documentElement.getAttribute('data-theme') === 'dark' ? '#e2e8f0' : '#333333'
+                            }
+                        }
                     }
                 }
             });
@@ -4075,9 +4082,19 @@
                                 }
                             }
                         }
+                    },
+                    plugins: {
+                        legend: {
+                            labels: {
+                                color: document.documentElement.getAttribute('data-theme') === 'dark' ? '#e2e8f0' : '#333333'
+                            }
+                        }
                     }
                 }
             });
+
+            // Apply dark mode styles to charts
+            applyChartDarkMode();
         }
 
         // ========== FINANCE FUNCTIONS ==========
@@ -4158,9 +4175,19 @@
                                 }
                             }
                         }
+                    },
+                    plugins: {
+                        legend: {
+                            labels: {
+                                color: document.documentElement.getAttribute('data-theme') === 'dark' ? '#e2e8f0' : '#333333'
+                            }
+                        }
                     }
                 }
             });
+
+            // Apply dark mode styles to finance chart
+            applyChartDarkMode();
         }
 
         function getTotalExpenditure() {
@@ -4315,7 +4342,7 @@
                         ['Total Members:', members.length],
                         ['Total Member Collections (৳):', getTotalCollected().toFixed(2)],
                         ['Total Public Donations (৳):', getTotalDonations().toFixed(2)],
-                        ['Total Collection (৳):', (getTotalCollected() + getTotalDonations()).toFixed(2)],
+                        ['Total Collection (Collection + Donations)', (getTotalCollected() + getTotalDonations()).toFixed(2)],
                         ['Total Expenditure (৳):', getTotalExpenditure().toFixed(2)],
                         ['Current Balance (৳):', (getTotalCollected() + getTotalDonations() - getTotalExpenditure()).toFixed(2)]
                     ];
@@ -4832,6 +4859,50 @@
             return appData.donations.reduce((sum, d) => sum + d.amount, 0);
         }
 
+        // ========== CHART DARK MODE FUNCTION ==========
+
+        function applyChartDarkMode() {
+            const isDarkMode = document.documentElement.getAttribute('data-theme') === 'dark';
+            const textColor = isDarkMode ? '#e2e8f0' : '#333333';
+            const gridColor = isDarkMode ? '#4a5568' : '#e2e8f0';
+            const backgroundColor = isDarkMode ? '#2d3748' : '#ffffff';
+            
+            // Apply to all existing charts
+            const charts = [monthlyChart, contributorsChart, financeChart];
+            
+            charts.forEach(chart => {
+                if (chart) {
+                    // Update scales
+                    if (chart.options.scales) {
+                        Object.keys(chart.options.scales).forEach(scaleKey => {
+                            const scale = chart.options.scales[scaleKey];
+                            if (scale.ticks) {
+                                scale.ticks.color = textColor;
+                            }
+                            if (scale.grid) {
+                                scale.grid.color = gridColor;
+                            }
+                        });
+                    }
+                    
+                    // Update title and legend
+                    if (chart.options.plugins) {
+                        if (chart.options.plugins.legend && chart.options.plugins.legend.labels) {
+                            chart.options.plugins.legend.labels.color = textColor;
+                        }
+                        if (chart.options.plugins.title) {
+                            chart.options.plugins.title.color = textColor;
+                        }
+                    }
+                    
+                    // Update canvas background
+                    chart.canvas.style.backgroundColor = backgroundColor;
+                    
+                    chart.update();
+                }
+            });
+        }
+
         // ========== INITIALIZATION ==========
 
         async function initializeApp() {
@@ -4864,12 +4935,22 @@
             
             // Update toggle button icon
             document.getElementById('themeToggle').textContent = newTheme === 'dark' ? '☀️' : '🌙';
+            
+            // Update charts for dark mode
+            applyChartDarkMode();
         }
         
         function initializeTheme() {
             const savedTheme = localStorage.getItem('theme') || 'light';
             document.documentElement.setAttribute('data-theme', savedTheme);
             document.getElementById('themeToggle').textContent = savedTheme === 'dark' ? '☀️' : '🌙';
+            
+            // Initialize charts with correct theme
+            setTimeout(() => {
+                if (monthlyChart || contributorsChart || financeChart) {
+                    applyChartDarkMode();
+                }
+            }, 100);
         }
         
 		// Initialize theme on page load
@@ -4879,5 +4960,3 @@
     <button class="theme-toggle" onclick="toggleTheme()" id="themeToggle">🌙</button>
 </body>
 </html>
-
-
