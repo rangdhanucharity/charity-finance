@@ -1292,6 +1292,42 @@
 			margin: 0;
 		}	
 		
+		/* Autocomplete styles */
+		.autocomplete-container {
+			position: relative;
+			width: 100%;
+		}
+		
+		.autocomplete-items {
+			position: absolute;
+			border: 1px solid #d4d4d4;
+			border-bottom: none;
+			border-top: none;
+			z-index: 99;
+			top: 100%;
+			left: 0;
+			right: 0;
+			max-height: 200px;
+			overflow-y: auto;
+			background: var(--bg-container);
+			box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+		}
+		
+		.autocomplete-items div {
+			padding: 10px;
+			cursor: pointer;
+			border-bottom: 1px solid #d4d4d4;
+		}
+		
+		.autocomplete-items div:hover {
+			background-color: var(--hover-bg);
+		}
+		
+		.autocomplete-active {
+			background-color: var(--gradient-start) !important;
+			color: white;
+		}
+		
     </style>
 </head>
 <body>
@@ -1481,6 +1517,7 @@
                         <tr>
                             <th>Member Name</th>
                             <th>Total Contribution</th>
+                            <th>One-Time Donations</th>
                             <th>Months Paid</th>
                             <th>Months Due</th>
                             <th class="admin-only">Actions</th>
@@ -1669,7 +1706,10 @@
             </div>
             <div class="form-group">
                 <label for="donorName">Donor Name:</label>
-                <input type="text" id="donorName" placeholder="Enter donor name">
+                <div class="autocomplete-container">
+                    <input type="text" id="donorName" placeholder="Enter donor name" autocomplete="off">
+                    <div id="donorNameAutocompleteList" class="autocomplete-items"></div>
+                </div>
             </div>
             <div class="form-group">
                 <label for="donationAmount">Amount (৳):</label>
@@ -1815,6 +1855,69 @@
 		</div>
 	</div>
 
+    <!-- Edit Donation Modal -->
+    <div id="editDonationModal" class="modal">
+        <div class="modal-content">
+            <h3>✏️ Edit Public Donation</h3>
+            <div class="form-group">
+                <label for="editDonationDate">Date:</label>
+                <input type="date" id="editDonationDate">
+            </div>
+            <div class="form-group">
+                <label for="editDonorName">Donor Name:</label>
+                <div class="autocomplete-container">
+                    <input type="text" id="editDonorName" placeholder="Enter donor name" autocomplete="off">
+                    <div id="editDonorNameAutocompleteList" class="autocomplete-items"></div>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="editDonationAmount">Amount (৳):</label>
+                <input type="number" id="editDonationAmount" placeholder="Enter amount">
+            </div>
+            <div class="form-group">
+                <label for="editDonationNote">Note (optional):</label>
+                <textarea id="editDonationNote" placeholder="e.g. For food drive, Anonymous"></textarea>
+            </div>
+            <div class="form-actions">
+                <button class="btn btn-secondary" onclick="hideEditDonationModal()">Cancel</button>
+                <button class="btn btn-primary" onclick="confirmEditDonation()">Update Donation</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Expense Modal -->
+    <div id="editExpenseModal" class="modal">
+        <div class="modal-content">
+            <h3>✏️ Edit Expense</h3>
+            <div class="form-group">
+                <label for="editExpenseDate">Date:</label>
+                <input type="date" id="editExpenseDate" value="">
+            </div>
+            <div class="form-group">
+                <label for="editExpenseAmount">Amount (৳):</label>
+                <input type="number" id="editExpenseAmount" placeholder="Enter amount">
+            </div>
+            <div class="form-group">
+                <label for="editExpenseCategory">Category:</label>
+                <select id="editExpenseCategory">
+                    <option value="Operational">Operational</option>
+                    <option value="Event">Event</option>
+                    <option value="Administrative">Administrative</option>
+                    <option value="Charity">Charity</option>
+                    <option value="Other">Other</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="editExpenseDescription">Description:</label>
+                <textarea id="editExpenseDescription" placeholder="Enter expense description"></textarea>
+            </div>
+            <div class="form-actions">
+                <button class="btn btn-secondary" onclick="hideEditExpenseModal()">Cancel</button>
+                <button class="btn btn-primary" onclick="confirmEditExpense()">Update Expense</button>
+            </div>
+        </div>
+    </div>
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -1870,6 +1973,10 @@
         let logoutWarningTimer;
         let logoutCountdown = 300; // 5 minutes in seconds
         let logoutCountdownInterval;
+
+        // Variables for editing
+        let currentEditingDonationId = null;
+        let currentEditingExpenseId = null;
 
         // ========== SEARCH AND SORT FUNCTIONALITY ==========
 
@@ -1930,10 +2037,18 @@
                 
                 const monthsDue = totalMonths - monthsPaid;
                 
+                // Calculate one-time donations for this member
+                const memberDonations = appData.donations.filter(d => {
+                    const matchingMember = appData.members.find(m => m.name === d.name);
+                    return matchingMember && matchingMember.id === member.id;
+                });
+                const oneTimeDonations = memberDonations.reduce((sum, d) => sum + d.amount, 0);
+                
                 const row = document.createElement('tr');
                 row.innerHTML = `
                     <td><strong>${member.name}</strong></td>
-                    <td><span class="taka-symbol">৳</span>${total.toFixed(2)}</td>
+                    <td><span class="taka-symbol">৳</span>${(total + oneTimeDonations).toFixed(2)}</td>
+                    <td><span class="taka-symbol">৳</span>${oneTimeDonations.toFixed(2)}</td>
                     <td>${monthsPaid}</td>
                     <td>${monthsDue}</td>
                     <td class="admin-only">
@@ -3749,10 +3864,99 @@
             document.getElementById('donationAmount').value = '';
             document.getElementById('donationNote').value = '';
             document.getElementById('donationModal').style.display = 'flex';
+            
+            // Setup autocomplete for donor name
+            setupAutocomplete('donorName', 'donorNameAutocompleteList');
         }
 
         function hideDonationModal() {
             document.getElementById('donationModal').style.display = 'none';
+        }
+
+        // Setup autocomplete for donor names
+        function setupAutocomplete(inputId, listId) {
+            const input = document.getElementById(inputId);
+            const autocompleteList = document.getElementById(listId);
+            
+            // Clear previous event listeners
+            input.removeEventListener('input', handleAutocomplete);
+            input.removeEventListener('keydown', handleAutocompleteKeydown);
+            
+            // Add new event listeners
+            input.addEventListener('input', handleAutocomplete);
+            input.addEventListener('keydown', handleAutocompleteKeydown);
+            
+            function handleAutocomplete() {
+                const val = this.value;
+                closeAllLists();
+                if (!val) return false;
+                
+                // Filter members whose names contain the input value
+                const filteredMembers = appData.members.filter(member => 
+                    member.name.toLowerCase().includes(val.toLowerCase())
+                );
+                
+                if (filteredMembers.length === 0) return;
+                
+                // Create autocomplete items
+                filteredMembers.forEach(member => {
+                    const item = document.createElement('div');
+                    item.innerHTML = `<strong>${member.name}</strong>`;
+                    item.innerHTML += `<small style="display: block; color: #666;">Member</small>`;
+                    item.addEventListener('click', function() {
+                        input.value = member.name;
+                        closeAllLists();
+                    });
+                    autocompleteList.appendChild(item);
+                });
+            }
+            
+            function handleAutocompleteKeydown(e) {
+                const items = autocompleteList.getElementsByTagName('div');
+                if (e.keyCode === 40) { // Down arrow
+                    currentFocus++;
+                    addActive(items);
+                } else if (e.keyCode === 38) { // Up arrow
+                    currentFocus--;
+                    addActive(items);
+                } else if (e.keyCode === 13) { // Enter
+                    e.preventDefault();
+                    if (currentFocus > -1) {
+                        if (items) items[currentFocus].click();
+                    }
+                }
+            }
+            
+            let currentFocus = -1;
+            
+            function addActive(items) {
+                if (!items) return false;
+                removeActive(items);
+                if (currentFocus >= items.length) currentFocus = 0;
+                if (currentFocus < 0) currentFocus = items.length - 1;
+                items[currentFocus].classList.add('autocomplete-active');
+            }
+            
+            function removeActive(items) {
+                for (let i = 0; i < items.length; i++) {
+                    items[i].classList.remove('autocomplete-active');
+                }
+            }
+            
+            function closeAllLists() {
+                const items = autocompleteList.getElementsByTagName('div');
+                for (let i = 0; i < items.length; i++) {
+                    items[i].parentNode.removeChild(items[i]);
+                }
+                currentFocus = -1;
+            }
+            
+            // Close autocomplete when clicking outside
+            document.addEventListener('click', function(e) {
+                if (e.target !== input) {
+                    closeAllLists();
+                }
+            });
         }
 
         async function confirmAddDonation() {
@@ -3777,6 +3981,7 @@
             renderDonations();
             updateDashboard();
             updateFinance();
+            updateReports();
             
             logActivity('added donation', 
                 `${appData.settings.currentAdmin} added donation from ${name} (Amount: ৳${amount}, Date: ${date})`);
@@ -3801,6 +4006,7 @@
                     <td><span class="taka-symbol">৳</span>${donation.amount.toFixed(2)}</td>
                     <td>${donation.note}</td>
                     <td class="admin-only">
+                        <button class="edit-btn" onclick="showEditDonationModal('${donation.id}')">Edit</button>
                         <button class="delete-btn" onclick="deleteDonationConfirmation('${donation.id}')">Delete</button>
                     </td>
                 `;
@@ -3809,6 +4015,72 @@
 
             const total = appData.donations.reduce((sum, d) => sum + d.amount, 0);
             document.getElementById('totalDonations').textContent = total.toFixed(2);
+        }
+
+        function showEditDonationModal(donationId) {
+            if (!requireAuth()) return;
+            
+            const donation = appData.donations.find(d => d.id === donationId);
+            if (!donation) return;
+            
+            currentEditingDonationId = donationId;
+            document.getElementById('editDonationDate').value = donation.date;
+            document.getElementById('editDonorName').value = donation.name;
+            document.getElementById('editDonationAmount').value = donation.amount;
+            document.getElementById('editDonationNote').value = donation.note || '';
+            
+            // Setup autocomplete for edit donor name
+            setupAutocomplete('editDonorName', 'editDonorNameAutocompleteList');
+            
+            document.getElementById('editDonationModal').style.display = 'flex';
+        }
+
+        function hideEditDonationModal() {
+            document.getElementById('editDonationModal').style.display = 'none';
+            currentEditingDonationId = null;
+        }
+
+        async function confirmEditDonation() {
+            if (!currentEditingDonationId) return;
+            
+            const date = document.getElementById('editDonationDate').value;
+            const name = document.getElementById('editDonorName').value.trim();
+            const amount = parseFloat(document.getElementById('editDonationAmount').value);
+            const note = document.getElementById('editDonationNote').value.trim();
+            
+            if (!date || !name || !amount) {
+                showCustomAlert('❌ Please enter Date, Donor Name, and Amount.', 'Input Error', 'warning');
+                return;
+            }
+
+            const donationIndex = appData.donations.findIndex(d => d.id === currentEditingDonationId);
+            if (donationIndex === -1) return;
+            
+            const oldDonation = appData.donations[donationIndex];
+            appData.donations[donationIndex] = {
+                ...oldDonation,
+                date,
+                name,
+                amount,
+                note: note || ''
+            };
+            
+            // Save to Firebase
+            await saveDonation(appData.donations[donationIndex]);
+            
+            renderDonations();
+            updateDashboard();
+            updateFinance();
+            updateReports();
+            
+            logActivity('edited donation', 
+                `${appData.settings.currentAdmin} edited donation from ${oldDonation.name} to ${name} (Amount: ৳${oldDonation.amount} -> ৳${amount}, Date: ${oldDonation.date} -> ${date})`);
+
+            hideEditDonationModal();
+            showCustomAlert('✅ Donation successfully updated!', 'Success', 'success');
+            
+            // Reset inactivity timer on any admin action
+            resetInactivityTimer();
         }
 
         function deleteDonationConfirmation(donationId) {
@@ -3837,6 +4109,7 @@
                     renderDonations();
                     updateDashboard();
                     updateFinance();
+                    updateReports();
                     
                     logActivity('deleted donation', 
                         `${appData.settings.currentAdmin} deleted donation from ${deletedDonation.name} (Amount: ৳${deletedDonation.amount}, Date: ${deletedDonation.date})`);
@@ -3917,11 +4190,73 @@
                     <td>${expense.category}</td>
                     <td>${expense.description}</td>
                     <td class="admin-only">
+                        <button class="edit-btn" onclick="showEditExpenseModal('${expense.id}')">Edit</button>
                         <button class="delete-btn" onclick="deleteExpenseConfirmation('${expense.id}')">Delete</button>
                     </td>
                 `;
                 expensesBody.appendChild(row);
             });
+        }
+
+        function showEditExpenseModal(expenseId) {
+            if (!requireAuth()) return;
+            
+            const expense = appData.expenses.find(e => e.id === expenseId);
+            if (!expense) return;
+            
+            currentEditingExpenseId = expenseId;
+            document.getElementById('editExpenseDate').value = expense.date;
+            document.getElementById('editExpenseAmount').value = expense.amount;
+            document.getElementById('editExpenseCategory').value = expense.category;
+            document.getElementById('editExpenseDescription').value = expense.description;
+            
+            document.getElementById('editExpenseModal').style.display = 'flex';
+        }
+
+        function hideEditExpenseModal() {
+            document.getElementById('editExpenseModal').style.display = 'none';
+            currentEditingExpenseId = null;
+        }
+
+        async function confirmEditExpense() {
+            if (!currentEditingExpenseId) return;
+            
+            const date = document.getElementById('editExpenseDate').value;
+            const amount = parseFloat(document.getElementById('editExpenseAmount').value);
+            const category = document.getElementById('editExpenseCategory').value;
+            const description = document.getElementById('editExpenseDescription').value.trim();
+            
+            if (!date || !amount || !description) {
+                showCustomAlert('❌ Please fill all required fields!', 'Input Error', 'warning');
+                return;
+            }
+
+            const expenseIndex = appData.expenses.findIndex(e => e.id === currentEditingExpenseId);
+            if (expenseIndex === -1) return;
+            
+            const oldExpense = appData.expenses[expenseIndex];
+            appData.expenses[expenseIndex] = {
+                ...oldExpense,
+                date,
+                amount,
+                category,
+                description
+            };
+            
+            // Save to Firebase
+            await saveExpense(appData.expenses[expenseIndex]);
+            
+            renderExpenses();
+            updateFinance();
+            
+            logActivity('edited expense', 
+                `${appData.settings.currentAdmin} edited expense (Amount: ৳${oldExpense.amount} -> ৳${amount}, Category: ${oldExpense.category} -> ${category}, Description: ${oldExpense.description} -> ${description})`);
+
+            hideEditExpenseModal();
+            showCustomAlert('✅ Expense successfully updated!', 'Success', 'success');
+            
+            // Reset inactivity timer on any admin action
+            resetInactivityTimer();
         }
 
         function deleteExpenseConfirmation(expenseId) {
@@ -4013,11 +4348,23 @@
                 });
             });
 
-            const contributorData = appData.members.map(member => ({
-                name: member.name,
-                total: Object.keys(appData.years).reduce((sum, year) => 
-                    sum + (appData.payments[member.id]?.[year] || []).reduce((s, v) => s + (parseFloat(v) || 0), 0), 0)
-            })).sort((a, b) => b.total - a.total).slice(0, 10);
+            const contributorData = appData.members.map(member => {
+                const memberDonations = appData.donations.filter(d => {
+                    const matchingMember = appData.members.find(m => m.name === d.name);
+                    return matchingMember && matchingMember.id === member.id;
+                });
+                const oneTimeDonations = memberDonations.reduce((sum, d) => sum + d.amount, 0);
+                
+                const memberPayments = Object.keys(appData.years).reduce((sum, year) => 
+                    sum + (appData.payments[member.id]?.[year] || []).reduce((s, v) => s + (parseFloat(v) || 0), 0), 0);
+                
+                return {
+                    name: member.name,
+                    total: memberPayments + oneTimeDonations,
+                    payments: memberPayments,
+                    donations: oneTimeDonations
+                };
+            }).sort((a, b) => b.total - a.total).slice(0, 10);
 
             if (monthlyChart) monthlyChart.destroy();
             if (contributorsChart) contributorsChart.destroy();
@@ -4380,6 +4727,8 @@
                         });
                     });
                     headers.push('Total Contribution (৳)');
+                    headers.push('One-Time Donations (৳)');
+                    headers.push('Grand Total (৳)');
                     paymentData.push(headers);
                     
                     members.forEach(member => {
@@ -4393,7 +4742,17 @@
                                 total += parseFloat(amount) || 0;
                             });
                         });
+                        
+                        // Calculate one-time donations for this member
+                        const memberDonations = appData.donations.filter(d => {
+                            const matchingMember = appData.members.find(m => m.name === d.name);
+                            return matchingMember && matchingMember.id === member.id;
+                        });
+                        const oneTimeDonations = memberDonations.reduce((sum, d) => sum + d.amount, 0);
+                        
                         row.push(total.toFixed(2));
+                        row.push(oneTimeDonations.toFixed(2));
+                        row.push((total + oneTimeDonations).toFixed(2));
                         paymentData.push(row);
                     });
                     
@@ -4527,7 +4886,7 @@
                     addSectionTitle(`II. Detailed Member Payments - ${selectedYear || 'All Time'}`);
                     
                     const memberRows = [];
-                    const allMemberHeaders = ['Member', 'Total ৳', 'Paid Months', 'Due Months'];
+                    const allMemberHeaders = ['Member', 'Total ৳', 'One-Time Donations ৳', 'Grand Total ৳', 'Paid Months', 'Due Months'];
                     
                     appData.members.forEach(member => {
                         let total = 0;
@@ -4542,9 +4901,18 @@
                             total += yearPayments.reduce((sum, val) => sum + (parseFloat(val) || 0), 0);
                         });
                         
+                        // Calculate one-time donations for this member
+                        const memberDonations = appData.donations.filter(d => {
+                            const matchingMember = appData.members.find(m => m.name === d.name);
+                            return matchingMember && matchingMember.id === member.id;
+                        });
+                        const oneTimeDonations = memberDonations.reduce((sum, d) => sum + d.amount, 0);
+                        
                         memberRows.push([
                             member.name, 
                             `৳${total.toFixed(2)}`, 
+                            `৳${oneTimeDonations.toFixed(2)}`,
+                            `৳${(total + oneTimeDonations).toFixed(2)}`,
                             paidMonths, 
                             (totalMonths - paidMonths)
                         ]);
@@ -4557,7 +4925,7 @@
                         theme: 'grid',
                         headStyles: { fillColor: primaryColor, fontSize: 10 },
                         styles: { fontSize: 9, cellPadding: 2 },
-                        columnStyles: { 1: { fontStyle: 'bold' } },
+                        columnStyles: { 1: { fontStyle: 'bold' }, 2: { fontStyle: 'bold' }, 3: { fontStyle: 'bold' } },
                         margin: { left: margin, right: margin }
                     });
                     yPosition = doc.lastAutoTable.finalY + 15;
